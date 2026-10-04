@@ -1,6 +1,6 @@
 # NEXA Group Finance — Enterprise R7.3 Deep Audit UAT Candidate
 
-Version: `7.0.3-r7.3-deep-audit`  
+Version: `7.0.3-r7.3-deep-audit`
 Date: 2026-10-04
 
 R7.2 is built from the exact source audited in GitHub commit `b9c4d796022482728349ef9f4b330f2f71649c1d` and fixes the root causes exposed by the latest MySQL 8.4 UAT logs.
@@ -54,4 +54,3 @@ Production Final is intentionally withheld until all GitHub MySQL 8.4 / migratio
 - Production defaults fail-closed; demo fallback is not automatic when `NEXA_ENV=production`.
 - First production owner bootstrap requires `NEXA_SETUP_KEY` >= 24 characters.
 - See `DEEP-AUDIT-R7.3.md` for the complete root-cause audit and residual external proof.
-
