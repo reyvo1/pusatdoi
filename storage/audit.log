@@ -14,3 +14,65 @@
 {"at":"2026-10-04T12:39:42+08:00","user":"system","action":"bank.statement_imported","ip":"cli","payload":{"profile_id":1,"imported":1,"skipped":0}}
 {"at":"2026-10-04T12:39:43+08:00","user":"system","action":"consolidation.posted","ip":"cli","payload":{"run_id":1,"period":"2026-09","lines":2}}
 {"at":"2026-10-04T12:39:43+08:00","user":"system","action":"approval_policy.created","ip":"cli","payload":{"id":1,"document_type":"journal"}}
+{"at":"2026-10-04T13:20:00+08:00","user":"Group Owner","action":"journal.posted","ip":"cli","payload":{"id":12,"amount":1000000}}
+{"at":"2026-10-04T13:20:00+08:00","user":"Group Owner","action":"journal.approval_requested","ip":"cli","payload":{"approval_id":3,"amount":30000000}}
+{"at":"2026-10-04T13:20:00+08:00","user":"Group Owner","action":"journal.posted","ip":"cli","payload":{"id":13,"amount":30000000}}
+{"at":"2026-10-04T13:20:00+08:00","user":"Group Owner","action":"approval.approved","ip":"cli","payload":{"approval_id":3}}
+{"at":"2026-10-04T13:20:00+08:00","user":"Group Owner","action":"journal.reversed","ip":"cli","payload":{"id":1,"reversal_id":14,"reason":"QA reversal"}}
+{"at":"2026-10-04T13:20:00+08:00","user":"Group Owner","action":"journal.posted","ip":"cli","payload":{"id":15,"amount":1000000}}
+{"at":"2026-10-04T13:20:00+08:00","user":"Group Owner","action":"invoice.payment_allocated","ip":"cli","payload":{"invoice_id":1,"payment_id":1,"amount":1000000}}
+{"at":"2026-10-04T13:20:00+08:00","user":"Group Owner","action":"intercompany.eliminated","ip":"cli","payload":{"id":1,"amount":100000000,"period":"2026-09"}}
+{"at":"2026-10-04T13:20:00+08:00","user":"Group Owner","action":"fx.recorded","ip":"cli","payload":{"id":1,"gain_loss":100000}}
+{"at":"2026-10-04T13:20:00+08:00","user":"Group Owner","action":"bank.csv_imported","ip":"cli","payload":{"company_id":1,"rows":1,"skipped":0}}
+{"at":"2026-10-04T13:20:00+08:00","user":"Group Owner","action":"journal.approval_requested","ip":"cli","payload":{"approval_id":4,"amount":30000000}}
+{"at":"2026-10-04T13:20:00+08:00","user":"Group Owner","action":"bank.csv_imported","ip":"cli","payload":{"company_id":1,"rows":1,"skipped":0}}
+{"at":"2026-10-04T13:20:00+08:00","user":"Group Owner","action":"bank.csv_imported","ip":"cli","payload":{"company_id":1,"rows":0,"skipped":1}}
+{"at":"2026-10-04T13:20:00+08:00","user":"Group Owner","action":"company.created","ip":"cli","payload":{"id":5,"code":"QA5"}}
+{"at":"2026-10-04T13:20:00+08:00","user":"Group Owner","action":"user.created","ip":"cli","payload":{"id":5,"role":"viewer"}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"budget.saved","ip":"cli","payload":{"company_id":1,"year":2026,"period":9,"amount":12345678}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"asset.created","ip":"cli","payload":{"id":5,"company_id":1}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"bank_account.created","ip":"cli","payload":{"id":3,"company_id":1}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"daily_income.posted","ip":"cli","payload":{"id":12,"amount":10000000,"company_id":1}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"daily_income.approval_requested","ip":"cli","payload":{"approval_id":3,"amount":30000000,"company_id":1}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"daily_income.posted","ip":"cli","payload":{"id":13,"amount":30000000,"company_id":1}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"approval.approved","ip":"cli","payload":{"approval_id":3}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"income_category.created","ip":"cli","payload":{"id":12,"company_id":1}}
+{"at":"2026-10-04T13:20:01+08:00","user":"system","action":"journal.r4_posted","ip":"cli","payload":{"id":12,"company_id":1,"amount":1110000}}
+{"at":"2026-10-04T13:20:01+08:00","user":"system","action":"daily_income.r4_posted","ip":"cli","payload":{"journal_id":12,"company_id":1,"gross":1110000,"tax_rows":1,"settlements":1}}
+{"at":"2026-10-04T13:20:01+08:00","user":"system","action":"journal.r4_posted","ip":"cli","payload":{"id":13,"company_id":1,"amount":1110000}}
+{"at":"2026-10-04T13:20:01+08:00","user":"system","action":"invoice.created","ip":"cli","payload":{"id":5,"journal_id":13,"gross":1110000}}
+{"at":"2026-10-04T13:20:01+08:00","user":"system","action":"journal.r4_posted","ip":"cli","payload":{"id":14,"company_id":1,"amount":500000}}
+{"at":"2026-10-04T13:20:01+08:00","user":"system","action":"payment.allocated","ip":"cli","payload":{"invoice_id":5,"payment_id":1,"journal_id":14}}
+{"at":"2026-10-04T13:20:01+08:00","user":"system","action":"journal.r4_posted","ip":"cli","payload":{"id":15,"company_id":1,"amount":10000000}}
+{"at":"2026-10-04T13:20:01+08:00","user":"system","action":"asset.acquired","ip":"cli","payload":{"id":5,"journal_id":15}}
+{"at":"2026-10-04T13:20:01+08:00","user":"system","action":"asset.transferred","ip":"cli","payload":{"id":5}}
+{"at":"2026-10-04T13:20:01+08:00","user":"system","action":"journal.r4_posted","ip":"cli","payload":{"id":16,"company_id":1,"amount":1000000}}
+{"at":"2026-10-04T13:20:01+08:00","user":"system","action":"asset.impaired","ip":"cli","payload":{"id":5,"amount":1000000,"journal_id":16}}
+{"at":"2026-10-04T13:20:01+08:00","user":"system","action":"journal.r4_posted","ip":"cli","payload":{"id":17,"company_id":1,"amount":10000000}}
+{"at":"2026-10-04T13:20:01+08:00","user":"system","action":"bank.profile_created","ip":"cli","payload":{"id":1}}
+{"at":"2026-10-04T13:20:01+08:00","user":"system","action":"bank.statement_imported","ip":"cli","payload":{"profile_id":1,"imported":1,"skipped":0}}
+{"at":"2026-10-04T13:20:01+08:00","user":"system","action":"consolidation.posted","ip":"cli","payload":{"run_id":1,"period":"2026-09","lines":2}}
+{"at":"2026-10-04T13:20:01+08:00","user":"system","action":"approval_policy.created","ip":"cli","payload":{"id":1,"document_type":"journal"}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"expense_category.created","ip":"cli","payload":{"id":6,"company_id":1}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"journal.r4_posted","ip":"cli","payload":{"id":12,"company_id":1,"amount":1110000}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"expense.posted","ip":"cli","payload":{"journal_id":12,"amount":1110000}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"coa.created","ip":"cli","payload":{"id":17,"code":"1103"}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"journal.r4_posted","ip":"cli","payload":{"id":13,"company_id":1,"amount":510000}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"bank_transfer.posted","ip":"cli","payload":{"id":1,"journal_id":13}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"journal.r4_posted","ip":"cli","payload":{"id":14,"company_id":4,"amount":1500000}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"opening_balance.posted","ip":"cli","payload":{"batch_id":1,"journal_id":14}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"journal.r4_posted","ip":"cli","payload":{"id":15,"company_id":2,"amount":200000}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"journal.r4_posted","ip":"cli","payload":{"id":16,"company_id":2,"amount":200000}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"journal.r4_posted","ip":"cli","payload":{"id":17,"company_id":3,"amount":18600000}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"coa.created","ip":"cli","payload":{"id":17,"code":"6101"}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"onboarding.imported","ip":"cli","payload":{"job_id":1,"company_id":1,"type":"coa","success":1,"failed":0}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"journal.r4_posted","ip":"cli","payload":{"id":12,"company_id":4,"amount":5000000}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"journal.r4_posted","ip":"cli","payload":{"id":12,"company_id":1,"amount":10000000}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"advance.issued","ip":"cli","payload":{"id":1,"amount":10000000}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"journal.r4_posted","ip":"cli","payload":{"id":13,"company_id":1,"amount":10000000}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"advance.settled","ip":"cli","payload":{"id":1,"journal_id":13}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"journal.r4_posted","ip":"cli","payload":{"id":14,"company_id":1,"amount":20000000}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"loan.created","ip":"cli","payload":{"id":1,"principal":20000000}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"journal.r4_posted","ip":"cli","payload":{"id":15,"company_id":1,"amount":6000000}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"journal.r4_posted","ip":"cli","payload":{"id":16,"company_id":1,"amount":10000000}}
+{"at":"2026-10-04T13:20:01+08:00","user":"Group Owner","action":"journal.r4_posted","ip":"cli","payload":{"id":17,"company_id":2,"amount":1000000}}
