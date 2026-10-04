@@ -1,0 +1,21 @@
+<?php
+declare(strict_types=1);
+putenv('NEXA_DEMO_MODE=false');
+require __DIR__.'/../lib/bootstrap.php';
+$pass=0;$fail=0;function r5m(bool $ok,string $name):void{global$pass,$fail;echo($ok?'PASS  ':'FAIL  ').$name."\n";$ok?$pass++:$fail++;}
+try{
+    $pdo=db();$owner=(int)$pdo->query("SELECT id FROM users WHERE email='owner-ci@nexa.local' LIMIT 1")->fetchColumn();if(!$owner)$owner=1;$_SESSION['user_id']=$owner;$_SESSION['user_name']='UAT Owner';
+    $s=loadStore();$cash=(int)accountIdByCode($s,1,'1101');$expense=(int)accountIdByCode($s,1,'5101');$fee=(int)accountIdByCode($s,1,'5501');$equity=(int)accountIdByCode($s,4,'3101');$retained=(int)accountIdByCode($s,3,'3102');
+    r5m($cash>0&&$expense>0&&$fee>0&&$equity>0&&$retained>0,'R5 operational accounts resolve');
+    $pdo->prepare("INSERT INTO expense_categories(company_id,code,name,expense_account_id,tax_profile_id,is_active) VALUES(1,'R5UAT','R5 UAT Expense',?,1,1) ON DUPLICATE KEY UPDATE expense_account_id=VALUES(expense_account_id),tax_profile_id=VALUES(tax_profile_id),is_active=1")->execute([$expense]);$cat=(int)$pdo->query("SELECT id FROM expense_categories WHERE company_id=1 AND code='R5UAT'")->fetchColumn();
+    $e=r5PostDailyExpense(['company_id'=>1,'branch_id'=>1,'department_id'=>1,'date'=>'2026-09-26','description'=>'R5 MySQL expense','expense_lines'=>[['category_id'=>$cat,'amount'=>100000,'tax_profile_id'=>1,'tax_mode'=>'exclusive','description'=>'R5 expense']], 'payment_lines'=>[['account_id'=>$cash,'amount'=>111000,'method'=>'bank','reference'=>'R5MYSQL-EXP']]],true);r5m(!empty($e['journal_id']),'Daily expense atomically posts journal');
+    $cash2=r4CreateAccount(['company_id'=>1,'code'=>'1198','name'=>'R5 UAT Clearing Cash','type'=>'asset','is_cash_bank'=>1]);$tr=r5BankTransfer(['company_id'=>1,'from_account_id'=>$cash,'to_account_id'=>$cash2['id'],'date'=>'2026-09-26','amount'=>100000,'fee_amount'=>5000,'fee_account_id'=>$fee,'reference'=>'R5MYSQL-TRF','description'=>'R5 MySQL transfer'],true);r5m(!empty($tr['journal_id']),'Bank transfer + fee posts atomically');
+    $ob=r5PostOpeningBalance(['company_id'=>4,'opening_date'=>'2025-01-01','lines'=>[['account_id'=>$cash,'debit'=>500000,'credit'=>0,'description'=>'Opening cash'],['account_id'=>$equity,'debit'=>0,'credit'=>500000,'description'=>'Opening equity']]]);r5m(($ob['status']??'')==='posted','Opening balance posts one controlled batch');
+    $tpl=r5CreateRecurringTemplate(['company_id'=>2,'name'=>'R5 MySQL auto reverse','description'=>'R5 recurring accrual','frequency'=>'monthly','next_run_date'=>'2026-09-26','auto_reverse'=>1,'reverse_after_days'=>1,'lines'=>[['account_id'=>$expense,'debit'=>125000,'credit'=>0],['account_id'=>$cash,'debit'=>0,'credit'=>125000]]]);$run=r5RunRecurring((int)$tpl['id']);r5m(($run['reversal_due_date']??'')==='2026-09-27','Recurring run schedules auto reversal');$rev=r5ProcessRecurringReversals('2026-09-27',true);r5m(($rev['processed']??0)>=1,'Recurring worker posts auto reversal');
+    $fc=r5CreateForecast(['company_id'=>1,'branch_id'=>1,'forecast_date'=>'2026-10-15','direction'=>'outflow','description'=>'R5 MySQL forecast','amount'=>1000000,'probability_pct'=>75]);r5m(!empty($fc['id']),'Manual cash forecast persists');
+    $dash=dashboardData();$hasInvoiceForecast=false;foreach($dash['cash_forecast_items']??[] as$r)if(in_array($r['source_type']??'',['receivable','payable'],true)){$hasInvoiceForecast=true;break;}r5m($hasInvoiceForecast,'Cash forecast automatically includes AR/AP due dates');
+    for($m=1;$m<=11;$m++){$pdo->prepare("INSERT INTO fiscal_periods(company_id,fiscal_year,period,status) VALUES(3,2026,?,'closed') ON DUPLICATE KEY UPDATE status='closed'")->execute([$m]);}
+    $ye=r5YearEndClose(['company_id'=>3,'fiscal_year'=>2026,'retained_earnings_account_id'=>$retained]);r5m(($ye['status']??'')==='posted','Production year-end close posts retained earnings');
+    $tb=$pdo->query("SELECT COUNT(*) FROM bank_transfers WHERE company_id=1")->fetchColumn();$rr=$pdo->query("SELECT COUNT(*) FROM recurring_journal_runs WHERE reversal_status='posted'")->fetchColumn();r5m((int)$tb>=1&&(int)$rr>=1,'R5 operational records persisted in MySQL');
+}catch(Throwable $e){echo 'FATAL '.get_class($e).': '.$e->getMessage()."\n";$fail++;}
+echo "R5 MySQL UAT: $pass passed, $fail failed\n";exit($fail?1:0);

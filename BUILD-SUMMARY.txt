@@ -1,0 +1,12 @@
+NEXA Group Finance Enterprise R7 UAT Candidate
+Build date: 2026-09-26
+Version: 7.0.0-r7-uat
+Files: 203
+PHP files: 145
+Enterprise PHP modules: 107
+PHP LOC: 4495
+SQL LOC: 6016
+Local workflow/rule assertions: 195 PASS
+Route sweep: 33/33 HTTP 200
+Report view sweep: 7/7 HTTP 200
+MySQL/Browser production evidence: pending GitHub Full UAT

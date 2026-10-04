@@ -1,0 +1,4 @@
+Options -Indexes
+<FilesMatch "(^\.|\.md$|\.sql$|\.json$|\.log$|\.sha256$|config\.local\.php$)">
+  Require all denied
+</FilesMatch>

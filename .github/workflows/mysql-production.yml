@@ -1,0 +1,62 @@
+name: NEXA MySQL Production Simulation
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '**.php'
+      - 'database/**'
+      - '.github/workflows/mysql-production.yml'
+jobs:
+  production-mysql:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
+    env:
+      NEXA_DEMO_MODE: 'false'
+      NEXA_DB_HOST: 127.0.0.1
+      NEXA_DB_PORT: 3306
+      NEXA_DB_NAME: nexa_group_finance
+      NEXA_DB_USER: root
+      NEXA_DB_PASS: root
+      NEXA_TIMEZONE: Asia/Makassar
+      NEXA_INTEGRATION_KEY: ci-integration-key-very-long-2026
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PHP MySQL extension
+        run: sudo apt-get update && sudo apt-get install -y php-mysql mysql-client
+      - name: PHP syntax validation
+        run: find . -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Import schema and seed
+        run: |
+          mysql -h127.0.0.1 -uroot -proot < database/schema_enterprise_r7.sql
+          mysql -h127.0.0.1 -uroot -proot < database/seed_enterprise.sql
+      - name: Verify Enterprise schema
+        run: php tests/schema-enterprise.php
+      - name: Run production MySQL test
+        run: php tests/mysql-production.php
+          php tests/r5-mysql-uat.php
+          php tests/r7-mysql-uat.php
+      - name: R5 operations MySQL test
+        run: php tests/r5-mysql-uat.php
+      - name: Health endpoint smoke
+        run: |
+          php -S 127.0.0.1:8080 >/tmp/nexa-server.log 2>&1 &
+          PID=$!
+          trap 'kill $PID || true' EXIT
+          sleep 1
+          curl --fail --silent http://127.0.0.1:8080/health.php | tee /tmp/health.json
+          grep -q '"database":"reachable"' /tmp/health.json
+          bash tests/http-production.sh
+          curl --fail --silent -X POST http://127.0.0.1:8080/integration.php \
+            -H 'Content-Type: application/json' -H 'X-Nexa-Key: ci-integration-key-very-long-2026' \
+            --data '{"source":"CI-POS","company_id":1,"external_ref":"CI-EXT-001","amount":250000}' | grep -q '"status":"received"'

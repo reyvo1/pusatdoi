@@ -1,0 +1,18 @@
+<?php
+declare(strict_types=1);
+putenv('NEXA_DEMO_MODE=false');
+require __DIR__.'/../lib/bootstrap.php';
+$pass=$fail=0;function r7m(bool $c,string $m):void{global$pass,$fail;echo($c?'PASS  ':'FAIL  ').$m."\n";$c?$pass++:$fail++;}
+try{
+ $pdo=db();$owner=(int)$pdo->query("SELECT id FROM users WHERE role='group_owner' ORDER BY id LIMIT 1")->fetchColumn();if(!$owner)throw new RuntimeException('Group owner seed missing');$_SESSION['user_id']=$owner;$_SESSION['user_name']='R7 UAT Owner';
+ $s=loadStore();$cash=(int)accountIdByCode($s,1,'1101');$advance=(int)accountIdByCode($s,1,'1102');$liability=(int)accountIdByCode($s,1,'2101');$expense=(int)accountIdByCode($s,1,'5101');$equity=(int)accountIdByCode($s,1,'3101');r7m($cash&&$advance&&$liability&&$expense&&$equity,'R7 operational accounts resolve');
+ $adv=r7IssueAdvance(['company_id'=>1,'employee_name'=>'R7 MySQL Staff','advance_date'=>'2026-09-26','due_date'=>'2026-10-01','amount'=>500000,'advance_account_id'=>$advance,'cash_account_id'=>$cash,'description'=>'R7 MySQL advance'],true);r7m(!empty($adv['journal_id']),'MySQL employee advance posts ledger');
+ $settle=r7SettleAdvance(['advance_id'=>$adv['id'],'settlement_date'=>'2026-09-26','expense_amount'=>450000,'refund_amount'=>50000,'reimbursement_amount'=>0,'expense_account_id'=>$expense,'cash_account_id'=>$cash,'description'=>'R7 MySQL settlement']);r7m(($settle['status']??'')==='settled','MySQL advance settlement clears balance');
+ $loan=r7CreateLoan(['company_id'=>1,'lender_name'=>'R7 Bank','reference_no'=>'R7-LN','start_date'=>'2026-09-26','maturity_date'=>'2027-09-26','principal'=>1000000,'annual_interest_rate'=>9,'liability_account_id'=>$liability,'cash_account_id'=>$cash,'interest_expense_account_id'=>$expense],true);r7m(!empty($loan['journal_id']),'MySQL loan disbursement posts ledger');
+ $pay=r7PayLoan(['loan_id'=>$loan['id'],'payment_date'=>'2026-09-26','principal_amount'=>200000,'interest_amount'=>10000,'cash_account_id'=>$cash,'reference_no'=>'R7-PAY'],true);r7m((int)$pay['outstanding_principal']===800000,'MySQL loan payment updates outstanding');
+ $eq=r7PostEquity(['company_id'=>1,'transaction_type'=>'capital_contribution','transaction_date'=>'2026-09-26','amount'=>300000,'cash_account_id'=>$cash,'equity_account_id'=>$equity,'reference_no'=>'R7-EQ','description'=>'R7 capital'],true);r7m(!empty($eq['journal_id']),'MySQL equity transaction posts ledger');
+ $sc=r7CreateBudgetScenario(['company_id'=>1,'fiscal_year'=>2027,'code'=>'R7BASE','name'=>'R7 Base','scenario_type'=>'base_case']);r7SaveBudgetScenarioLine(['scenario_id'=>$sc['id'],'account_id'=>(int)accountIdByCode(loadStore(),1,'4101'),'period'=>1,'amount'=>5000000]);r7m((int)$pdo->query('SELECT COUNT(*) FROM budget_scenario_lines WHERE scenario_id='.(int)$sc['id'])->fetchColumn()===1,'MySQL budget scenario persists line');
+ $dash=dashboardData();r7m(isset($dash['management_kpis']['current_ratio']),'Production dashboard exposes management KPIs');r7m(count($dash['notifications']??[])>=1,'Production dashboard derives notification center');
+ $balanced=(int)$pdo->query("SELECT COUNT(*) FROM (SELECT je.id,ROUND(SUM(jl.debit),2)d,ROUND(SUM(jl.credit),2)c FROM journal_entries je JOIN journal_lines jl ON jl.journal_id=je.id WHERE je.source_type IN ('employee_advance','advance_settlement','loan_disbursement','loan_payment','equity_transaction') GROUP BY je.id HAVING d<>c) x")->fetchColumn()===0;r7m($balanced,'R7 MySQL journals stay balanced');
+}catch(Throwable$e){echo 'FATAL '.get_class($e).': '.$e->getMessage()."\n";$fail++;}
+echo "R7 MySQL UAT: $pass passed, $fail failed\n";exit($fail?1:0);

@@ -1,0 +1,1131 @@
+{
+    "companies": [
+        {
+            "id": 1,
+            "code": "HTL",
+            "name": "PT Hotel Nusantara",
+            "type": "Hotel",
+            "color": "violet"
+        },
+        {
+            "id": 2,
+            "code": "RTL",
+            "name": "CV Retail Sejahtera",
+            "type": "Retail",
+            "color": "blue"
+        },
+        {
+            "id": 3,
+            "code": "KOS",
+            "name": "Properti Harmoni",
+            "type": "Kos & Properti",
+            "color": "teal"
+        },
+        {
+            "id": 4,
+            "code": "FNB",
+            "name": "PT Kuliner Bersama",
+            "type": "F&B",
+            "color": "amber"
+        }
+    ],
+    "branches": [
+        {
+            "id": 1,
+            "company_id": 1,
+            "code": "HTL-MDO",
+            "name": "Hotel Manado",
+            "timezone": "Asia\/Makassar",
+            "active": 1
+        },
+        {
+            "id": 2,
+            "company_id": 2,
+            "code": "RTL-MDO",
+            "name": "Retail Manado",
+            "timezone": "Asia\/Makassar",
+            "active": 1
+        },
+        {
+            "id": 3,
+            "company_id": 3,
+            "code": "KOS-A",
+            "name": "Kos Harmoni A",
+            "timezone": "Asia\/Makassar",
+            "active": 1
+        },
+        {
+            "id": 4,
+            "company_id": 4,
+            "code": "FNB-MDO",
+            "name": "Kuliner Manado",
+            "timezone": "Asia\/Makassar",
+            "active": 1
+        }
+    ],
+    "departments": [
+        {
+            "id": 1,
+            "company_id": 1,
+            "branch_id": 1,
+            "code": "ROOM",
+            "name": "Rooms",
+            "cost_center_code": "CC-ROOM",
+            "profit_center_code": "PC-ROOM",
+            "active": 1
+        },
+        {
+            "id": 2,
+            "company_id": 1,
+            "branch_id": 1,
+            "code": "FNB",
+            "name": "Food & Beverage",
+            "cost_center_code": "CC-FNB",
+            "profit_center_code": "PC-FNB",
+            "active": 1
+        },
+        {
+            "id": 3,
+            "company_id": 2,
+            "branch_id": 2,
+            "code": "SALES",
+            "name": "Sales",
+            "cost_center_code": "CC-SALES",
+            "profit_center_code": "PC-SALES",
+            "active": 1
+        },
+        {
+            "id": 4,
+            "company_id": 3,
+            "branch_id": 3,
+            "code": "RENT",
+            "name": "Rental",
+            "cost_center_code": "CC-RENT",
+            "profit_center_code": "PC-RENT",
+            "active": 1
+        }
+    ],
+    "accounts": [
+        {
+            "id": 1,
+            "code": "1101",
+            "name": "Kas & Bank",
+            "type": "asset",
+            "cash": 1
+        },
+        {
+            "id": 2,
+            "code": "1102",
+            "name": "Piutang Usaha",
+            "type": "asset",
+            "cash": 0
+        },
+        {
+            "id": 3,
+            "code": "1201",
+            "name": "Aset Tetap",
+            "type": "asset",
+            "cash": 0
+        },
+        {
+            "id": 4,
+            "code": "2101",
+            "name": "Hutang Usaha",
+            "type": "liability",
+            "cash": 0
+        },
+        {
+            "id": 5,
+            "code": "3101",
+            "name": "Modal & Saldo Laba",
+            "type": "equity",
+            "cash": 0
+        },
+        {
+            "id": 6,
+            "code": "4101",
+            "name": "Pendapatan Usaha",
+            "type": "revenue",
+            "cash": 0
+        },
+        {
+            "id": 7,
+            "code": "5101",
+            "name": "Beban Operasional",
+            "type": "expense",
+            "cash": 0
+        },
+        {
+            "id": 8,
+            "code": "5201",
+            "name": "Beban Utilitas",
+            "type": "expense",
+            "cash": 0
+        },
+        {
+            "id": 9,
+            "code": "1301",
+            "name": "Piutang Antar Perusahaan",
+            "type": "asset",
+            "cash": 0
+        },
+        {
+            "id": 10,
+            "code": "2301",
+            "name": "Hutang Antar Perusahaan",
+            "type": "liability",
+            "cash": 0
+        },
+        {
+            "id": 11,
+            "code": "1191",
+            "name": "Akumulasi Penyusutan",
+            "type": "asset",
+            "cash": 0
+        },
+        {
+            "id": 12,
+            "code": "5301",
+            "name": "Beban Penyusutan",
+            "type": "expense",
+            "cash": 0
+        },
+        {
+            "id": 13,
+            "code": "2111",
+            "name": "PPN Keluaran",
+            "type": "liability",
+            "cash": 0
+        },
+        {
+            "id": 14,
+            "code": "1151",
+            "name": "PPN Masukan",
+            "type": "asset",
+            "cash": 0
+        },
+        {
+            "id": 15,
+            "code": "7101",
+            "name": "Laba\/Rugi Selisih Kurs",
+            "type": "revenue",
+            "cash": 0
+        },
+        {
+            "id": 16,
+            "code": "5401",
+            "name": "Laba\/Rugi Pelepasan & Penurunan Nilai Aset",
+            "type": "expense",
+            "cash": 0
+        }
+    ],
+    "entries": [
+        {
+            "id": 1,
+            "no": "JRN-202609-0001",
+            "company_id": 1,
+            "date": "2026-09-24",
+            "description": "Pendapatan kamar & layanan",
+            "status": "posted",
+            "source": "demo",
+            "intercompany_company_id": null,
+            "lines": [
+                {
+                    "account_id": 1,
+                    "debit": 48500000,
+                    "credit": 0
+                },
+                {
+                    "account_id": 6,
+                    "debit": 0,
+                    "credit": 48500000
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "no": "JRN-202609-0002",
+            "company_id": 2,
+            "date": "2026-09-24",
+            "description": "Penjualan toko",
+            "status": "posted",
+            "source": "demo",
+            "intercompany_company_id": null,
+            "lines": [
+                {
+                    "account_id": 1,
+                    "debit": 31750000,
+                    "credit": 0
+                },
+                {
+                    "account_id": 6,
+                    "debit": 0,
+                    "credit": 31750000
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "no": "JRN-202609-0003",
+            "company_id": 4,
+            "date": "2026-09-23",
+            "description": "Pembelian bahan baku",
+            "status": "posted",
+            "source": "demo",
+            "intercompany_company_id": null,
+            "lines": [
+                {
+                    "account_id": 7,
+                    "debit": 12450000,
+                    "credit": 0
+                },
+                {
+                    "account_id": 1,
+                    "debit": 0,
+                    "credit": 12450000
+                }
+            ]
+        },
+        {
+            "id": 4,
+            "no": "JRN-202609-0004",
+            "company_id": 3,
+            "date": "2026-09-23",
+            "description": "Penerimaan sewa kos",
+            "status": "posted",
+            "source": "demo",
+            "intercompany_company_id": null,
+            "lines": [
+                {
+                    "account_id": 1,
+                    "debit": 18600000,
+                    "credit": 0
+                },
+                {
+                    "account_id": 6,
+                    "debit": 0,
+                    "credit": 18600000
+                }
+            ]
+        },
+        {
+            "id": 5,
+            "no": "JRN-202609-0005",
+            "company_id": 1,
+            "date": "2026-09-22",
+            "description": "Pembayaran listrik",
+            "status": "posted",
+            "source": "demo",
+            "intercompany_company_id": null,
+            "lines": [
+                {
+                    "account_id": 8,
+                    "debit": 9200000,
+                    "credit": 0
+                },
+                {
+                    "account_id": 1,
+                    "debit": 0,
+                    "credit": 9200000
+                }
+            ]
+        },
+        {
+            "id": 6,
+            "no": "JRN-202609-0006",
+            "company_id": 1,
+            "date": "2026-09-21",
+            "description": "Pendapatan OTA & walk-in",
+            "status": "posted",
+            "source": "demo",
+            "intercompany_company_id": null,
+            "lines": [
+                {
+                    "account_id": 1,
+                    "debit": 42600000,
+                    "credit": 0
+                },
+                {
+                    "account_id": 6,
+                    "debit": 0,
+                    "credit": 42600000
+                }
+            ]
+        },
+        {
+            "id": 7,
+            "no": "JRN-202609-0007",
+            "company_id": 2,
+            "date": "2026-09-21",
+            "description": "Penjualan retail",
+            "status": "posted",
+            "source": "demo",
+            "intercompany_company_id": null,
+            "lines": [
+                {
+                    "account_id": 1,
+                    "debit": 28400000,
+                    "credit": 0
+                },
+                {
+                    "account_id": 6,
+                    "debit": 0,
+                    "credit": 28400000
+                }
+            ]
+        },
+        {
+            "id": 8,
+            "no": "JRN-202609-0008",
+            "company_id": 3,
+            "date": "2026-09-20",
+            "description": "Biaya perawatan properti",
+            "status": "posted",
+            "source": "demo",
+            "intercompany_company_id": null,
+            "lines": [
+                {
+                    "account_id": 7,
+                    "debit": 5600000,
+                    "credit": 0
+                },
+                {
+                    "account_id": 1,
+                    "debit": 0,
+                    "credit": 5600000
+                }
+            ]
+        },
+        {
+            "id": 9,
+            "no": "JRN-202609-0009",
+            "company_id": 4,
+            "date": "2026-09-20",
+            "description": "Pendapatan restoran",
+            "status": "posted",
+            "source": "demo",
+            "intercompany_company_id": null,
+            "lines": [
+                {
+                    "account_id": 1,
+                    "debit": 22400000,
+                    "credit": 0
+                },
+                {
+                    "account_id": 6,
+                    "debit": 0,
+                    "credit": 22400000
+                }
+            ]
+        },
+        {
+            "id": 10,
+            "no": "JRN-202609-0010",
+            "company_id": 1,
+            "date": "2026-09-19",
+            "description": "Pinjaman antar perusahaan ke Retail",
+            "status": "posted",
+            "source": "demo",
+            "intercompany_company_id": 2,
+            "lines": [
+                {
+                    "account_id": 9,
+                    "debit": 100000000,
+                    "credit": 0
+                },
+                {
+                    "account_id": 1,
+                    "debit": 0,
+                    "credit": 100000000
+                }
+            ]
+        },
+        {
+            "id": 11,
+            "no": "JRN-202609-0011",
+            "company_id": 2,
+            "date": "2026-09-19",
+            "description": "Terima pinjaman dari Hotel",
+            "status": "posted",
+            "source": "demo",
+            "intercompany_company_id": 1,
+            "lines": [
+                {
+                    "account_id": 1,
+                    "debit": 100000000,
+                    "credit": 0
+                },
+                {
+                    "account_id": 10,
+                    "debit": 0,
+                    "credit": 100000000
+                }
+            ]
+        }
+    ],
+    "budgets": [
+        {
+            "company_id": 1,
+            "budget": 1400000000,
+            "actual": 1285000000
+        },
+        {
+            "company_id": 2,
+            "budget": 1000000000,
+            "actual": 940000000
+        },
+        {
+            "company_id": 3,
+            "budget": 390000000,
+            "actual": 420000000
+        },
+        {
+            "company_id": 4,
+            "budget": 560000000,
+            "actual": 515000000
+        }
+    ],
+    "assets": [
+        {
+            "id": 1,
+            "company_id": 1,
+            "name": "Gedung Hotel Utama",
+            "category": "Bangunan",
+            "cost": 7800000000,
+            "book": 6420000000
+        },
+        {
+            "id": 2,
+            "company_id": 2,
+            "name": "Ruko Retail A",
+            "category": "Bangunan",
+            "cost": 2600000000,
+            "book": 2380000000
+        },
+        {
+            "id": 3,
+            "company_id": 3,
+            "name": "Kompleks Kos Harmoni",
+            "category": "Bangunan",
+            "cost": 7400000000,
+            "book": 7010000000
+        },
+        {
+            "id": 4,
+            "company_id": 4,
+            "name": "Kendaraan Operasional",
+            "category": "Kendaraan",
+            "cost": 620000000,
+            "book": 428000000
+        }
+    ],
+    "trend": [
+        {
+            "m": "Apr",
+            "revenue": 2490,
+            "expense": 1740
+        },
+        {
+            "m": "Mei",
+            "revenue": 2620,
+            "expense": 1795
+        },
+        {
+            "m": "Jun",
+            "revenue": 2715,
+            "expense": 1840
+        },
+        {
+            "m": "Jul",
+            "revenue": 2860,
+            "expense": 1902
+        },
+        {
+            "m": "Agu",
+            "revenue": 3015,
+            "expense": 1968
+        },
+        {
+            "m": "Sep",
+            "revenue": 3160,
+            "expense": 2032
+        }
+    ],
+    "cashflow": [
+        {
+            "m": "Apr",
+            "operating": 540,
+            "investing": -110,
+            "financing": 40
+        },
+        {
+            "m": "Mei",
+            "operating": 612,
+            "investing": -80,
+            "financing": -30
+        },
+        {
+            "m": "Jun",
+            "operating": 655,
+            "investing": -140,
+            "financing": 20
+        },
+        {
+            "m": "Jul",
+            "operating": 702,
+            "investing": -105,
+            "financing": -10
+        },
+        {
+            "m": "Agu",
+            "operating": 748,
+            "investing": -90,
+            "financing": -35
+        },
+        {
+            "m": "Sep",
+            "operating": 812,
+            "investing": -120,
+            "financing": 15
+        }
+    ],
+    "users": [
+        {
+            "id": 1,
+            "name": "Group Owner",
+            "email": "owner@nexa.local",
+            "role": "group_owner",
+            "active": 1
+        },
+        {
+            "id": 2,
+            "name": "Finance Controller",
+            "email": "finance@nexa.local",
+            "role": "group_finance",
+            "active": 1
+        },
+        {
+            "id": 3,
+            "name": "Entity Admin Hotel",
+            "email": "hotel@nexa.local",
+            "role": "entity_admin",
+            "company_id": 1,
+            "active": 1
+        },
+        {
+            "id": 4,
+            "name": "Internal Auditor",
+            "email": "audit@nexa.local",
+            "role": "auditor",
+            "active": 1
+        }
+    ],
+    "periods": [
+        {
+            "id": 1,
+            "year": 2026,
+            "month": 8,
+            "status": "closed",
+            "closed_at": "2026-09-05 18:00:00",
+            "closed_by": 2
+        },
+        {
+            "id": 2,
+            "year": 2026,
+            "month": 9,
+            "status": "open",
+            "closed_at": null,
+            "closed_by": null
+        }
+    ],
+    "approvals": [
+        {
+            "id": 1,
+            "journal_id": null,
+            "company_id": 1,
+            "date": "2026-09-24",
+            "description": "CAPEX renovasi kamar tahap 1",
+            "amount": 78000000,
+            "requested_by": 3,
+            "status": "pending",
+            "requested_at": "2026-09-24 11:20:00"
+        },
+        {
+            "id": 2,
+            "journal_id": null,
+            "company_id": 2,
+            "date": "2026-09-23",
+            "description": "Pembelian stok elektronik volume besar",
+            "amount": 46500000,
+            "requested_by": 2,
+            "status": "approved",
+            "requested_at": "2026-09-23 09:10:00",
+            "decided_at": "2026-09-23 09:42:00",
+            "decided_by": 1
+        }
+    ],
+    "invoices": [
+        {
+            "id": 1,
+            "company_id": 1,
+            "type": "receivable",
+            "number": "AR-HTL-260901",
+            "party": "OTA Nusantara",
+            "issue_date": "2026-09-05",
+            "due_date": "2026-10-05",
+            "amount": 42500000,
+            "paid": 17500000,
+            "status": "partial"
+        },
+        {
+            "id": 2,
+            "company_id": 3,
+            "type": "receivable",
+            "number": "AR-KOS-260917",
+            "party": "Tenant Korporat A",
+            "issue_date": "2026-09-17",
+            "due_date": "2026-09-30",
+            "amount": 18000000,
+            "paid": 0,
+            "status": "open"
+        },
+        {
+            "id": 3,
+            "company_id": 4,
+            "type": "payable",
+            "number": "AP-FNB-260920",
+            "party": "Supplier Bahan Pangan",
+            "issue_date": "2026-09-20",
+            "due_date": "2026-10-04",
+            "amount": 28750000,
+            "paid": 10000000,
+            "status": "partial"
+        },
+        {
+            "id": 4,
+            "company_id": 2,
+            "type": "payable",
+            "number": "AP-RTL-260925",
+            "party": "Distributor Elektronik",
+            "issue_date": "2026-09-25",
+            "due_date": "2026-10-25",
+            "amount": 53200000,
+            "paid": 0,
+            "status": "open"
+        }
+    ],
+    "bank_feed": [
+        {
+            "id": 1,
+            "company_id": 1,
+            "date": "2026-09-24",
+            "description": "SETTLEMENT OTA 240926",
+            "amount": 48500000,
+            "direction": "in",
+            "status": "matched",
+            "journal_id": 1
+        },
+        {
+            "id": 2,
+            "company_id": 1,
+            "date": "2026-09-22",
+            "description": "PLN HOTEL SEPTEMBER",
+            "amount": 9200000,
+            "direction": "out",
+            "status": "matched",
+            "journal_id": 5
+        },
+        {
+            "id": 3,
+            "company_id": 2,
+            "date": "2026-09-25",
+            "description": "TRANSFER MASUK ECOMMERCE",
+            "amount": 14750000,
+            "direction": "in",
+            "status": "unmatched",
+            "journal_id": null
+        },
+        {
+            "id": 4,
+            "company_id": 4,
+            "date": "2026-09-25",
+            "description": "DEBIT SUPPLIER 8921",
+            "amount": 6350000,
+            "direction": "out",
+            "status": "unmatched",
+            "journal_id": null
+        }
+    ],
+    "currencies": [
+        {
+            "code": "IDR",
+            "name": "Indonesian Rupiah",
+            "rate": 1,
+            "updated_at": "2026-09-25"
+        },
+        {
+            "code": "USD",
+            "name": "US Dollar",
+            "rate": 16850,
+            "updated_at": "2026-09-25"
+        },
+        {
+            "code": "SGD",
+            "name": "Singapore Dollar",
+            "rate": 13120,
+            "updated_at": "2026-09-25"
+        }
+    ],
+    "tax_profiles": [
+        {
+            "id": 1,
+            "code": "PPN11",
+            "name": "PPN Keluaran",
+            "rate": 11,
+            "type": "output",
+            "input_account_id": 14,
+            "output_account_id": 13,
+            "active": 1
+        },
+        {
+            "id": 2,
+            "code": "PPNIN11",
+            "name": "PPN Masukan",
+            "rate": 11,
+            "type": "input",
+            "input_account_id": 14,
+            "output_account_id": 13,
+            "active": 1
+        },
+        {
+            "id": 3,
+            "code": "NONE",
+            "name": "Non Pajak",
+            "rate": 0,
+            "type": "none",
+            "input_account_id": null,
+            "output_account_id": null,
+            "active": 1
+        }
+    ],
+    "payments": [],
+    "parties": [
+        {
+            "id": 1,
+            "company_id": 1,
+            "party_type": "customer",
+            "code": "OTA-NUS",
+            "name": "OTA Nusantara",
+            "currency": "IDR",
+            "active": 1
+        },
+        {
+            "id": 2,
+            "company_id": 4,
+            "party_type": "vendor",
+            "code": "SUP-FNB",
+            "name": "Supplier Bahan Pangan",
+            "currency": "IDR",
+            "active": 1
+        }
+    ],
+    "invoice_lines": [],
+    "payment_allocations": [],
+    "tax_transactions": [],
+    "asset_depreciation_schedule": [],
+    "reconciliation_sessions": [],
+    "consolidation_runs": [],
+    "elimination_entries": [],
+    "approval_decisions": [],
+    "fx_rates": [],
+    "fx_revaluation_runs": [],
+    "integration_outbox": [],
+    "period_close_tasks": [],
+    "asset_events": [],
+    "settlement_batches": [],
+    "bank_import_profiles": [],
+    "bank_statement_imports": [],
+    "approval_policies": [],
+    "invoice_adjustments": [],
+    "bank_accounts": [
+        {
+            "id": 1,
+            "company_id": 1,
+            "account_id": 1,
+            "bank_name": "Bank Utama",
+            "account_name": "PT Hotel Nusantara",
+            "account_number": "****1001",
+            "active": 1
+        },
+        {
+            "id": 2,
+            "company_id": 2,
+            "account_id": 1,
+            "bank_name": "Bank Utama",
+            "account_name": "CV Retail Sejahtera",
+            "account_number": "****2001",
+            "active": 1
+        }
+    ],
+    "income_categories": [
+        {
+            "id": 1,
+            "company_id": 1,
+            "code": "ROOM",
+            "name": "Pendapatan Kamar",
+            "revenue_account_id": 6,
+            "active": 1,
+            "sort_order": 10
+        },
+        {
+            "id": 2,
+            "company_id": 1,
+            "code": "FNB",
+            "name": "Restoran & Mini Bar",
+            "revenue_account_id": 6,
+            "active": 1,
+            "sort_order": 20
+        },
+        {
+            "id": 3,
+            "company_id": 1,
+            "code": "LAUNDRY",
+            "name": "Laundry",
+            "revenue_account_id": 6,
+            "active": 1,
+            "sort_order": 30
+        },
+        {
+            "id": 4,
+            "company_id": 1,
+            "code": "OTHER",
+            "name": "Pendapatan Lain",
+            "revenue_account_id": 6,
+            "active": 1,
+            "sort_order": 90
+        },
+        {
+            "id": 5,
+            "company_id": 2,
+            "code": "SALES",
+            "name": "Penjualan Barang",
+            "revenue_account_id": 6,
+            "active": 1,
+            "sort_order": 10
+        },
+        {
+            "id": 6,
+            "company_id": 2,
+            "code": "SERVICE",
+            "name": "Jasa & Layanan",
+            "revenue_account_id": 6,
+            "active": 1,
+            "sort_order": 20
+        },
+        {
+            "id": 7,
+            "company_id": 3,
+            "code": "RENT",
+            "name": "Sewa Kamar \/ Unit",
+            "revenue_account_id": 6,
+            "active": 1,
+            "sort_order": 10
+        },
+        {
+            "id": 8,
+            "company_id": 3,
+            "code": "UTILITY",
+            "name": "Listrik \/ Air \/ Service",
+            "revenue_account_id": 6,
+            "active": 1,
+            "sort_order": 20
+        },
+        {
+            "id": 9,
+            "company_id": 4,
+            "code": "DINEIN",
+            "name": "Dine-in",
+            "revenue_account_id": 6,
+            "active": 1,
+            "sort_order": 10
+        },
+        {
+            "id": 10,
+            "company_id": 4,
+            "code": "TAKEAWAY",
+            "name": "Takeaway \/ Delivery",
+            "revenue_account_id": 6,
+            "active": 1,
+            "sort_order": 20
+        },
+        {
+            "id": 11,
+            "company_id": 4,
+            "code": "EVENT",
+            "name": "Catering \/ Event",
+            "revenue_account_id": 6,
+            "active": 1,
+            "sort_order": 30
+        }
+    ],
+    "expense_categories": [
+        {
+            "id": 1,
+            "company_id": 1,
+            "code": "UTILITY",
+            "name": "Listrik \/ Air \/ Utilitas",
+            "expense_account_id": 8,
+            "tax_profile_id": 2,
+            "active": 1
+        },
+        {
+            "id": 2,
+            "company_id": 1,
+            "code": "OPS",
+            "name": "Operasional Hotel",
+            "expense_account_id": 7,
+            "tax_profile_id": 2,
+            "active": 1
+        },
+        {
+            "id": 3,
+            "company_id": 2,
+            "code": "OPS",
+            "name": "Operasional Retail",
+            "expense_account_id": 7,
+            "tax_profile_id": 2,
+            "active": 1
+        },
+        {
+            "id": 4,
+            "company_id": 3,
+            "code": "MAINT",
+            "name": "Maintenance Properti",
+            "expense_account_id": 7,
+            "tax_profile_id": 2,
+            "active": 1
+        },
+        {
+            "id": 5,
+            "company_id": 4,
+            "code": "SUPPLY",
+            "name": "Bahan & Operasional F&B",
+            "expense_account_id": 7,
+            "tax_profile_id": 2,
+            "active": 1
+        }
+    ],
+    "bank_transfers": [],
+    "opening_balance_batches": [],
+    "recurring_journal_templates": [],
+    "recurring_journal_runs": [],
+    "cash_forecast_items": [
+        {
+            "id": 1,
+            "company_id": 1,
+            "branch_id": 1,
+            "forecast_date": "2026-10-05",
+            "direction": "inflow",
+            "source_type": "manual",
+            "description": "Settlement OTA Oktober",
+            "amount": 65000000,
+            "currency": "IDR",
+            "probability_pct": 90,
+            "status": "planned"
+        },
+        {
+            "id": 2,
+            "company_id": 1,
+            "branch_id": 1,
+            "forecast_date": "2026-10-10",
+            "direction": "outflow",
+            "source_type": "manual",
+            "description": "Payroll & utilitas hotel",
+            "amount": 42000000,
+            "currency": "IDR",
+            "probability_pct": 100,
+            "status": "planned"
+        }
+    ],
+    "year_end_closes": [],
+    "onboarding_import_jobs": [],
+    "onboarding_import_errors": [],
+    "ap_payment_batches": [],
+    "ap_payment_batch_lines": [],
+    "document_attachments": [],
+    "employee_advances": [],
+    "employee_advance_settlements": [],
+    "loan_facilities": [],
+    "loan_payments": [],
+    "equity_transactions": [],
+    "budget_scenarios": [],
+    "budget_scenario_lines": [],
+    "eliminations": [],
+    "fx_events": [],
+    "integration_staging": [
+        {
+            "id": 1,
+            "source": "HOTEL-PMS",
+            "company_id": 1,
+            "external_ref": "HTL-SETTLE-240926",
+            "status": "validated",
+            "amount": 48500000,
+            "received_at": "2026-09-24 22:11:00"
+        },
+        {
+            "id": 2,
+            "source": "POS-RETAIL",
+            "company_id": 2,
+            "external_ref": "POS-DAY-240926",
+            "status": "posted",
+            "amount": 31750000,
+            "received_at": "2026-09-24 23:10:00"
+        }
+    ],
+    "meta": {
+        "next_entry_id": 12,
+        "next_approval_id": 3,
+        "next_payment_id": 1,
+        "next_elimination_id": 1,
+        "next_bank_id": 5,
+        "next_bank_account_id": 3,
+        "next_company_id": 5,
+        "next_user_id": 5,
+        "next_asset_id": 5,
+        "next_income_category_id": 12,
+        "next_account_id": 17,
+        "next_party_id": 3,
+        "next_expense_category_id": 6,
+        "next_bank_transfer_id": 1,
+        "next_opening_balance_id": 1,
+        "next_recurring_id": 1,
+        "next_recurring_run_id": 1,
+        "next_cash_forecast_id": 3,
+        "next_year_end_id": 1,
+        "next_import_job_id": 1,
+        "next_import_error_id": 1,
+        "next_payment_batch_id": 1,
+        "next_payment_batch_line_id": 1,
+        "next_document_id": 1,
+        "next_advance_id": 1,
+        "next_advance_settlement_id": 1,
+        "next_loan_id": 1,
+        "next_loan_payment_id": 1,
+        "next_equity_tx_id": 1,
+        "next_budget_scenario_id": 1,
+        "next_budget_scenario_line_id": 1,
+        "next_invoice_line_id": 1,
+        "next_payment_allocation_id": 1,
+        "next_tax_transaction_id": 1,
+        "next_dep_schedule_id": 1,
+        "next_reconciliation_session_id": 1,
+        "next_consolidation_run_id": 1,
+        "next_elimination_entry_id": 1,
+        "next_approval_decision_id": 1,
+        "next_fx_rate_id": 1,
+        "next_fx_revaluation_id": 1,
+        "next_outbox_id": 1,
+        "version": 6,
+        "approval_threshold": 25000000
+    }
+}
