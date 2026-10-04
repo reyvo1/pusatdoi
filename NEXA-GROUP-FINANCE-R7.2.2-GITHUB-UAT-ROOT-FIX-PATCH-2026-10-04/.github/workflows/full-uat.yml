@@ -1,0 +1,266 @@
+name: NEXA Full UAT
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+  pull_request:
+concurrency:
+  group: nexa-full-uat-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NEXA_DEMO_MODE: 'false'
+  NEXA_DB_HOST: 127.0.0.1
+  NEXA_DB_PORT: 3306
+  NEXA_DB_NAME: nexa_group_finance
+  NEXA_DB_USER: root
+  NEXA_DB_PASS: root
+  NEXA_TIMEZONE: Asia/Makassar
+  NEXA_INTEGRATION_KEY: ci-integration-key-very-long-2026
+
+jobs:
+  core-regression:
+    name: Core / Static Regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: PHP lint
+        run: find . -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: JavaScript syntax
+        run: node --check assets/app.js
+      - name: Schema / migration contract
+        run: php tests/schema-contract.php
+      - name: Frontend / backend contract
+        run: php tests/frontend-backend-contract.php
+      - name: Demo accounting regression
+        env: { NEXA_DEMO_MODE: 'true' }
+        run: php tests/run.php
+      - name: Enterprise domain rules
+        run: php tests/enterprise-domain.php
+      - name: Enterprise advanced rules
+        run: php tests/enterprise-advanced.php
+      - name: R4 workflow contract
+        env: { NEXA_DEMO_MODE: 'true' }
+        run: php tests/r4-workflows.php
+      - name: R5-R7 finance workflows
+        env: { NEXA_DEMO_MODE: 'true' }
+        run: |
+          php tests/r5-operations.php
+          php tests/r6-usability.php
+          php tests/r7-group-controls.php
+      - name: R5-R7 JavaScript syntax
+        run: |
+          node --check assets/r5-ui.js
+          node --check assets/r6-ui.js
+          node --check assets/r7-ui.js
+      - name: Architecture gate
+        run: php tests/architecture.php
+      - name: Production fail-closed
+        run: php tests/production-fail-closed.php
+
+  mysql-accounting:
+    name: MySQL / Accounting UAT
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env: { MYSQL_ROOT_PASSWORD: root }
+        ports: [ '3306:3306' ]
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s --health-timeout=5s --health-retries=12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PHP MySQL
+        run: sudo apt-get update && sudo apt-get install -y php-mysql mysql-client
+      - name: Schema + seed
+        run: mysql -h127.0.0.1 -uroot -proot < database/schema_enterprise_r7.sql && mysql -h127.0.0.1 -uroot -proot < database/seed_enterprise.sql
+      - name: Fixture
+        run: php tests/uat-fixture.php
+      - name: Enterprise schema verification
+        run: php tests/schema-enterprise.php
+      - name: Existing production DB tests
+        run: php tests/mysql-production.php
+      - name: Full accounting UAT
+        run: php tests/full-uat.php
+      - name: Enterprise relational DB UAT
+        run: |
+          php tests/enterprise-db-uat.php
+          php tests/r5-mysql-uat.php
+          php tests/r7-mysql-uat.php
+      - name: Database backup / restore DR smoke
+        run: |
+          mkdir -p artifacts
+          bash bin/mysql-backup.sh artifacts/nexa-ci.sql.gz
+          bash bin/mysql-restore.sh artifacts/nexa-ci.sql.gz nexa_restore_test
+          a=$(mysql -N -h127.0.0.1 -uroot -proot nexa_group_finance -e "SELECT COUNT(*) FROM companies")
+          b=$(mysql -N -h127.0.0.1 -uroot -proot nexa_restore_test -e "SELECT COUNT(*) FROM companies")
+          test "$a" = "$b"
+
+
+  migration-upgrade:
+    name: R2 → R7 Migration UAT
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env: { MYSQL_ROOT_PASSWORD: root }
+        ports: [ '3306:3306' ]
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s --health-timeout=5s --health-retries=12
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y php-mysql mysql-client
+      - name: Build legacy R2 database
+        run: mysql -h127.0.0.1 -uroot -proot < database/schema.sql && mysql -h127.0.0.1 -uroot -proot < database/seed.sql
+      - name: Snapshot exact legacy master data
+        run: |
+          mysql -N -B -h127.0.0.1 -uroot -proot nexa_group_finance -e "SELECT id,code,name,COALESCE(legal_name,''),business_type,COALESCE(tax_id,''),base_currency,is_active FROM companies ORDER BY id" > /tmp/pre-companies.tsv
+          mysql -N -B -h127.0.0.1 -uroot -proot nexa_group_finance -e "SELECT id,COALESCE(company_id,0),code,name,account_type,COALESCE(parent_id,0),is_cash_bank,is_active FROM chart_accounts ORDER BY id" > /tmp/pre-accounts.tsv
+          cat /tmp/pre-companies.tsv
+          cat /tmp/pre-accounts.tsv
+      - name: Apply Enterprise R3 migration
+        run: mysql -h127.0.0.1 -uroot -proot nexa_group_finance < database/migrations/20260925_v6_enterprise_r3.sql
+      - name: Apply Enterprise R4 migration
+        run: mysql -h127.0.0.1 -uroot -proot nexa_group_finance < database/migrations/20260926_v7_enterprise_r4.sql
+      - name: Apply Enterprise R5 migration
+        run: mysql -h127.0.0.1 -uroot -proot nexa_group_finance < database/migrations/20260926_v8_finance_operations.sql
+      - name: Apply Enterprise R6 migration
+        run: mysql -h127.0.0.1 -uroot -proot nexa_group_finance < database/migrations/20260926_v9_enterprise_usability.sql
+      - name: Apply Enterprise R7 migration
+        run: mysql -h127.0.0.1 -uroot -proot nexa_group_finance < database/migrations/20260926_v10_group_finance_controls.sql
+      - name: Verify enterprise schema after upgrade
+        run: php tests/schema-enterprise.php
+      - name: Verify legacy rows preserved and required system accounts added
+        run: |
+          company_ids=$(cut -f1 /tmp/pre-companies.tsv | paste -sd, -)
+          account_ids=$(cut -f1 /tmp/pre-accounts.tsv | paste -sd, -)
+          test -n "$company_ids"
+          test -n "$account_ids"
+          mysql -N -B -h127.0.0.1 -uroot -proot nexa_group_finance -e "SELECT id,code,name,COALESCE(legal_name,''),business_type,COALESCE(tax_id,''),base_currency,is_active FROM companies WHERE id IN ($company_ids) ORDER BY id" > /tmp/post-companies.tsv
+          mysql -N -B -h127.0.0.1 -uroot -proot nexa_group_finance -e "SELECT id,COALESCE(company_id,0),code,name,account_type,COALESCE(parent_id,0),is_cash_bank,is_active FROM chart_accounts WHERE id IN ($account_ids) ORDER BY id" > /tmp/post-legacy-accounts.tsv
+          diff -u /tmp/pre-companies.tsv /tmp/post-companies.tsv
+          diff -u /tmp/pre-accounts.tsv /tmp/post-legacy-accounts.tsv
+          required=$(mysql -N -B -h127.0.0.1 -uroot -proot nexa_group_finance -e "SELECT COUNT(*) FROM chart_accounts WHERE company_id IS NULL AND ((code='1161' AND name='Beban Dibayar Dimuka' AND account_type='asset' AND is_cash_bank=0 AND is_active=1) OR (code='2201' AND name='Pendapatan Diterima Dimuka' AND account_type='liability' AND is_cash_bank=0 AND is_active=1) OR (code='3102' AND name='Saldo Laba Ditahan' AND account_type='equity' AND is_cash_bank=0 AND is_active=1) OR (code='5401' AND name='Laba/Rugi Pelepasan & Penurunan Nilai Aset' AND account_type='expense' AND is_cash_bank=0 AND is_active=1) OR (code='5501' AND name='Biaya Administrasi Bank' AND account_type='expense' AND is_cash_bank=0 AND is_active=1))")
+          test "$required" -eq 5
+          total=$(mysql -N -h127.0.0.1 -uroot -proot nexa_group_finance -e "SELECT COUNT(*) FROM chart_accounts")
+          legacy=$(wc -l < /tmp/pre-accounts.tsv)
+          test "$total" -eq $((legacy + 5))
+      - name: Run regression against upgraded DB
+        run: |
+          php tests/uat-fixture.php
+          php tests/mysql-production.php
+          php tests/full-uat.php
+          php tests/enterprise-db-uat.php
+          php tests/r5-mysql-uat.php
+          php tests/r7-mysql-uat.php
+
+  http-security-reports:
+    name: HTTP / Security / Reports UAT
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env: { MYSQL_ROOT_PASSWORD: root }
+        ports: [ '3306:3306' ]
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s --health-timeout=5s --health-retries=12
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y php-mysql mysql-client
+      - run: mysql -h127.0.0.1 -uroot -proot < database/schema_enterprise_r7.sql && mysql -h127.0.0.1 -uroot -proot < database/seed_enterprise.sql
+      - run: php tests/uat-fixture.php
+      - name: Start app
+        run: php -S 127.0.0.1:8080 > /tmp/nexa-http.log 2>&1 & echo $! > /tmp/nexa-http.pid
+      - name: Health
+        run: for i in {1..20}; do curl -fsS http://127.0.0.1:8080/health.php && break || sleep 1; done
+      - name: Full HTTP UAT
+        run: bash tests/http-full-uat.sh
+      - name: Server must have no fatal/warning
+        if: always()
+        run: '! grep -Ei "PHP (Fatal|Warning|Parse error)" /tmp/nexa-http.log'
+      - name: Upload server log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: http-server-log, path: /tmp/nexa-http.log }
+
+  browser-e2e:
+    name: Browser E2E / Visual UAT
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env: { MYSQL_ROOT_PASSWORD: root }
+        ports: [ '3306:3306' ]
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s --health-timeout=5s --health-retries=12
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y php-mysql mysql-client
+      - run: mysql -h127.0.0.1 -uroot -proot < database/schema_enterprise_r7.sql && mysql -h127.0.0.1 -uroot -proot < database/seed_enterprise.sql
+      - run: php tests/uat-fixture.php
+      - name: Install Playwright
+        run: npm install --no-save playwright && npx playwright install --with-deps chromium
+      - name: Start browser test server
+        run: |
+          mkdir -p artifacts
+          nohup php -S 127.0.0.1:8080 > /tmp/nexa-browser.log 2>&1 &
+          for i in {1..20}; do curl -fsS http://127.0.0.1:8080/health.php >/dev/null && break || sleep 1; done
+      - name: Browser UAT
+        run: node tests/browser-uat.mjs
+      - name: Upload visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: browser-uat-evidence, path: artifacts/ }
+      - name: Server must have no fatal/warning
+        if: always()
+        run: '! grep -Ei "PHP (Fatal|Warning|Parse error)" /tmp/nexa-browser.log'
+
+  scale-simulation:
+    name: Multi-Entity / High-Volume UAT
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env: { MYSQL_ROOT_PASSWORD: root }
+        ports: [ '3306:3306' ]
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s --health-timeout=5s --health-retries=12
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y php-mysql mysql-client
+      - run: mysql -h127.0.0.1 -uroot -proot < database/schema_enterprise_r7.sql && mysql -h127.0.0.1 -uroot -proot < database/seed_enterprise.sql
+      - run: php tests/uat-fixture.php
+      - name: High-volume accounting simulation
+        run: php tests/scale-uat.php
+      - name: DB integrity summary
+        run: |
+          mysql -h127.0.0.1 -uroot -proot nexa_group_finance -e "SELECT COUNT(*) journal_entries FROM journal_entries; SELECT COUNT(*) journal_lines FROM journal_lines; SELECT company_id,COUNT(*) entries FROM journal_entries GROUP BY company_id ORDER BY company_id;"
+
+  uat-verdict:
+    name: Production Candidate UAT Verdict
+    if: always()
+    needs: [core-regression, mysql-accounting, migration-upgrade, http-security-reports, browser-e2e, scale-simulation]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require all gates green
+        env:
+          CORE: ${{ needs.core-regression.result }}
+          MYSQL: ${{ needs.mysql-accounting.result }}
+          MIGRATION: ${{ needs.migration-upgrade.result }}
+          HTTP: ${{ needs.http-security-reports.result }}
+          BROWSER: ${{ needs.browser-e2e.result }}
+          SCALE: ${{ needs.scale-simulation.result }}
+        run: |
+          printf 'Core=%s\nMySQL=%s\nMigration=%s\nHTTP=%s\nBrowser=%s\nScale=%s\n' "$CORE" "$MYSQL" "$MIGRATION" "$HTTP" "$BROWSER" "$SCALE"
+          test "$CORE" = success
+          test "$MYSQL" = success
+          test "$MIGRATION" = success
+          test "$HTTP" = success
+          test "$BROWSER" = success
+          test "$SCALE" = success
+          echo 'PASS FOR PRODUCTION CANDIDATE — FULL GITHUB UAT'
