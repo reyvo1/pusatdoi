@@ -18,6 +18,8 @@ echo '== Frontend / backend contract =='
 php tests/frontend-backend-contract.php
 echo '== Deep audit security / integrity =='
 php tests/deep-audit-security.php
+echo '== Systemic full-source audit =='
+php tests/systemic-source-audit.php
 echo '== Legacy regression =='
 php tests/run.php
 echo '== Enterprise domain =='
@@ -36,4 +38,4 @@ echo '== Architecture =='
 php tests/architecture.php
 echo '== Production fail-closed =='
 php tests/production-fail-closed.php
-echo 'LOCAL GATES PASS — MySQL/browser production gates run in GitHub Actions.'
+echo 'LOCAL DETERMINISTIC GATES PASS — PRODUCTION NOT YET PROVEN; real MySQL/browser gates must pass on the exact same GitHub SHA.'

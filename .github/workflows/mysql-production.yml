@@ -40,6 +40,8 @@ jobs:
         run: php tests/frontend-backend-contract.php
       - name: Deep audit security / integrity
         run: php tests/deep-audit-security.php
+      - name: Systemic full-source audit
+        run: php tests/systemic-source-audit.php
       - name: JavaScript syntax validation
         run: |
           node --check assets/app.js
