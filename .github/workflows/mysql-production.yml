@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - '**.php'
+      - 'assets/**'
+      - 'tests/**'
       - 'database/**'
       - '.github/workflows/mysql-production.yml'
 jobs:
@@ -36,6 +38,17 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y php-mysql mysql-client
       - name: PHP syntax validation
         run: find . -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Schema / migration contract
+        run: php tests/schema-contract.php
+      - name: Frontend / backend contract
+        run: php tests/frontend-backend-contract.php
+      - name: JavaScript syntax validation
+        run: |
+          node --check assets/app.js
+          node --check assets/r4-ui.js
+          node --check assets/r5-ui.js
+          node --check assets/r6-ui.js
+          node --check assets/r7-ui.js
       - name: Import schema and seed
         run: |
           mysql -h127.0.0.1 -uroot -proot < database/schema_enterprise_r7.sql

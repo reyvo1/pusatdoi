@@ -1,19 +1,18 @@
-# Production Checklist — Enterprise R7
+# PRODUCTION CHECKLIST — R7.2
 
-- [ ] Verify ZIP SHA-256.
-- [ ] Run `bash tests/run-all-local.sh` on Ubuntu.
-- [ ] Fresh install uses `database/schema_enterprise_r7.sql`, or upgrade R2 with v6→v10 migrations in order.
-- [ ] Backup production database before migration and test restore.
-- [ ] Set `NEXA_DEMO_MODE=false` and valid DB credentials.
-- [ ] Set strong setup/integration/worker secrets outside web root or environment manager.
-- [ ] Use HTTPS and secure PHP session cookie settings at hosting/web-server layer.
-- [ ] Create real Group Owner; remove/disable CI/test credentials.
-- [ ] Verify company/entity scope for every Entity Admin.
-- [ ] Load real COA, opening balances, fiscal periods, tax profiles and bank mappings.
-- [ ] Configure approval policies and closing checklist.
-- [ ] Run GitHub `NEXA Full UAT`; require every gate green.
-- [ ] Review Browser E2E screenshot artifacts.
-- [ ] Run MySQL backup + restore DR smoke.
-- [ ] UAT real sample: daily income/expense, AR/AP, bank reconciliation, advance, loan, asset, consolidation, tax/FX, reports/export.
-- [ ] Benchmark expected production transaction volume before sign-off.
-- [ ] Keep PMS/POS/HR/inventory systems as source systems; integrate via staging/idempotent API.
+R7.2 is a UAT candidate, not Production Final.
+
+Before production sign-off:
+
+- [ ] `NEXA Full UAT` all jobs green on GitHub.
+- [ ] `NEXA MySQL Production Simulation` green on GitHub.
+- [ ] Fresh MySQL 8.4 import of `database/schema_enterprise_r7.sql` PASS.
+- [ ] R2→R7 migration chain PASS with legacy counts preserved.
+- [ ] Browser E2E real multi-currency journal round-trip PASS.
+- [ ] HTTP/security/reports/export gate PASS with no PHP warning/fatal.
+- [ ] Scale simulation PASS.
+- [ ] Production environment has PDO MySQL enabled.
+- [ ] Real company COA, opening balances, bank accounts, tax profiles, users/roles and approval policies reviewed.
+- [ ] Backup/restore drill completed on staging data.
+- [ ] Integration keys and application secrets replaced with production secrets.
+- [ ] Demo mode disabled and application fails closed if DB is unavailable.

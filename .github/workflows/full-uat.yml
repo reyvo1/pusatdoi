@@ -30,6 +30,8 @@ jobs:
         run: node --check assets/app.js
       - name: Schema / migration contract
         run: php tests/schema-contract.php
+      - name: Frontend / backend contract
+        run: php tests/frontend-backend-contract.php
       - name: Demo accounting regression
         env: { NEXA_DEMO_MODE: 'true' }
         run: php tests/run.php

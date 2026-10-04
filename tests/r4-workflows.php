@@ -14,6 +14,16 @@ try{
     // UI->API contract static
     $js=file_get_contents(__DIR__.'/../assets/r4-ui.js');$api=file_get_contents(__DIR__.'/../api.php');preg_match_all("/api\\('([^']+)'/",$js,$m1);preg_match_all("/action==='([^']+)'/",$api,$m2);$missing=array_values(array_diff(array_unique($m1[1]),array_unique($m2[1])));ok4($missing===[],'Every R4 UI action has backend route');
     ok4(strpos($js,'prompt(')===false,'R4 UI has no browser prompt workflow');
+    ok4(strpos($js,"field('Exchange Rate ke Base','exchange_rate'")!==false&&strpos($js,"field('Foreign Amount','foreign_amount'")!==false,'Journal UI exposes FX rate and foreign amount fields');
+    $fxNorm=r4ValidateJournalLines($s,1,1,1,[
+      ['account_id'=>1,'debit'=>1600000,'credit'=>0,'transaction_currency'=>'USD','foreign_amount'=>100,'exchange_rate'=>16000],
+      ['account_id'=>6,'debit'=>0,'credit'=>1600000,'transaction_currency'=>'USD','foreign_amount'=>100,'exchange_rate'=>16000],
+    ]);
+    ok4(($fxNorm['total']??0)===1600000&&($fxNorm['lines'][0]['foreign_amount']??0)===100,'Foreign-currency journal validates foreign amount × exchange rate against base ledger');
+    $blockedFx=false;try{r4ValidateJournalLines($s,1,1,1,[['account_id'=>1,'debit'=>100,'credit'=>0,'transaction_currency'=>'USD','exchange_rate'=>1],['account_id'=>6,'debit'=>0,'credit'=>100,'transaction_currency'=>'USD','exchange_rate'=>1]]);}catch(InvalidArgumentException $e){$blockedFx=str_contains($e->getMessage(),'Foreign amount');}
+    ok4($blockedFx,'Backend rejects non-base journal without foreign amount');
+    $blockedBaseRate=false;try{r4ValidateJournalLines($s,1,1,1,[['account_id'=>1,'debit'=>100,'credit'=>0,'transaction_currency'=>'IDR','foreign_amount'=>100,'exchange_rate'=>2],['account_id'=>6,'debit'=>0,'credit'=>100,'transaction_currency'=>'IDR','foreign_amount'=>100,'exchange_rate'=>2]]);}catch(InvalidArgumentException $e){$blockedBaseRate=str_contains($e->getMessage(),'harus 1');}
+    ok4($blockedBaseRate,'Backend rejects non-1 exchange rate for company base currency');
 
     $before=count(loadStore()['entries']);
     $di=r4PostDailyIncome(['company_id'=>1,'branch_id'=>1,'department_id'=>1,'date'=>'2026-09-26','description'=>'R4 UAT daily income','currency'=>'IDR','exchange_rate'=>1,'income_lines'=>[['category_id'=>1,'amount'=>1110000,'tax_profile_id'=>1,'tax_mode'=>'inclusive']],'payment_lines'=>[['account_id'=>1,'gross_amount'=>1110000,'fee_amount'=>10000,'fee_account_id'=>7,'channel'=>'QRIS','external_ref'=>'R4-UAT-SETTLE-1']]],true);

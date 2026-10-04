@@ -12,6 +12,10 @@ node --check assets/r6-ui.js
 node --check assets/r7-ui.js
 node --check tests/browser-uat.mjs
 echo 'PASS JavaScript syntax'
+echo '== Schema / migration contract =='
+php tests/schema-contract.php
+echo '== Frontend / backend contract =='
+php tests/frontend-backend-contract.php
 echo '== Legacy regression =='
 php tests/run.php
 echo '== Enterprise domain =='

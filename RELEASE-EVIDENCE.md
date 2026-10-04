@@ -1,43 +1,43 @@
-# NEXA Enterprise R7 — Release Evidence
+# RELEASE EVIDENCE — NEXA Enterprise R7.2 Root-Fix UAT Candidate
 
-## Locally proven
+Version: `7.0.2-r7.2-uat`  
+Date: 2026-10-04
 
-- PHP syntax: PASS across source.
-- JavaScript syntax: PASS (`app.js`, R4-R7 UI, browser UAT script).
-- Legacy regression: 62/62 PASS.
-- Enterprise domain: 35/35 PASS.
-- Enterprise advanced: 33/33 PASS.
-- R4 workflow/UI-API: 17/17 PASS.
-- R5 finance operations: 22/22 PASS.
-- R6 usability: 6/6 PASS.
-- R7 group finance controls: 20/20 PASS.
-- Total workflow/rule assertions: **195 PASS**.
-- Architecture gate: PASS, 107 enterprise PHP modules discovered.
-- Production fail-closed: PASS when PDO MySQL is unavailable.
-- Demo route sweep: 33/33 HTTP 200.
-- Report view sweep: 7/7 HTTP 200.
-- PHP warning/fatal during route sweep: 0.
-- GitHub workflow YAML parse: PASS.
+## Grounded external evidence
 
-## R7 workflows actually executed locally
+The repair was derived from uploaded GitHub Actions logs for repository `reyvo1/pusatdoi` and audited against exact commit:
 
-- Employee advance issue → balanced journal → settlement/reimbursement.
-- Loan disbursement → outstanding principal → principal/interest repayment.
-- Capital contribution/equity posting.
-- Budget scenario/version → monthly target → variance comparison.
-- Live notification derivation.
-- Management KPI calculation.
-- Entity Admin scoping for new R7 domains.
-- R6 bulk COA import, AP payment batch and protected document evidence.
+`b9c4d796022482728349ef9f4b330f2f71649c1d`
 
-## Must still be proven by GitHub
+Observed GitHub failures:
 
-Local runtime does not provide PDO MySQL/MySQL server, so no claim is made that MySQL R7 tests passed locally. GitHub must prove:
+- Fresh schema: `ERROR 1054 (42S22) ... Unknown column 'period_end' in 'bank_reconciliation_sessions'`.
+- Migration verifier: reported every enterprise table missing after migration steps completed.
 
-- clean `schema_enterprise_r7.sql` on MySQL 8.4;
-- R2→R7 migration v6→v10;
-- `r7-mysql-uat.php` and relational DB UAT;
-- HTTP/security/report/export paths on production-mode DB;
-- Browser E2E including R7 modals and visual artifacts;
-- high-volume/multi-entity simulation;
-- final verdict only if every dependency succeeds.
+See `GITHUB-UAT-ROOT-CAUSE-R7.2.md`.
+
+## Local evidence after repair
+
+- 258/258 contract, rule and workflow assertions PASS.
+- All PHP syntax PASS.
+- All JavaScript syntax PASS.
+- Architecture gate PASS.
+- Production fail-closed PASS.
+- Demo route sweep: 33/33 pages HTTP 200.
+- Demo server PHP fatal/warning: 0.
+- Fresh schema static contract: no migration ALTER leftovers, duplicate table definitions, duplicate columns, duplicate named indexes or duplicate constraint names.
+- UI API action parity: all detected frontend actions have backend routes.
+- Critical journal, reconciliation, invoice and R5–R7 runtime contracts PASS.
+
+## External proof intentionally pending
+
+This environment has no PDO drivers/MySQL server. Therefore the following remain GitHub-only mandatory gates:
+
+- MySQL 8.4 fresh schema import and seed.
+- R2 → R7 migration chain.
+- production MySQL accounting tests.
+- HTTP/security/report/export UAT.
+- Browser E2E real UI→API→backend→MySQL FX journal posting.
+- multi-entity/high-volume simulation.
+
+No Production Final claim is made until those gates are green.

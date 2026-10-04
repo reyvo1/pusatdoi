@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 function r4ContextStore():array{
     global $config;if($config['demo_mode'])return loadStore();$pdo=db();
-    $companies=$pdo->query("SELECT id,code,name,business_type type,'violet' color FROM companies WHERE is_active=1 ORDER BY id")->fetchAll();
+    $companies=$pdo->query("SELECT id,code,name,business_type type,base_currency,'violet' color FROM companies WHERE is_active=1 ORDER BY id")->fetchAll();
     $branches=$pdo->query("SELECT id,company_id,code,name,timezone,is_active active FROM branches WHERE is_active=1 ORDER BY company_id,code")->fetchAll();
     $departments=$pdo->query("SELECT id,company_id,branch_id,code,name,cost_center_code,profit_center_code,is_active active FROM departments WHERE is_active=1 ORDER BY company_id,branch_id,code")->fetchAll();
     $accounts=$pdo->query("SELECT id,company_id,code,name,account_type type,parent_id,is_cash_bank cash,is_active active FROM chart_accounts WHERE is_active=1 ORDER BY company_id,code")->fetchAll();
@@ -41,14 +41,18 @@ function r4ApprovalPolicy(array $s,int $company,string $documentType,int $amount
     return ['id'=>(int)$r['id'],'required'=>true,'min_approvers'=>max(1,(int)$r['min_approvers']),'threshold'=>(int)round((float)$r['threshold_amount']),'roles'=>$r['roles_json']?json_decode((string)$r['roles_json'],true):[],'require_distinct'=>(bool)$r['require_distinct_approvers']];
 }
 function r4ValidateJournalLines(array $s,int $company,?int $branch,?int $department,array $raw):array{
-    $am=accountMap($s);$lines=[];$dr=0;$cr=0;
+    global $config;$am=accountMap($s);$lines=[];$dr=0;$cr=0;
     foreach($raw as $i=>$r){
         $aid=(int)($r['account_id']??0);$debit=r4MoneyInt($r['debit']??0);$credit=r4MoneyInt($r['credit']??0);
         if(!$aid||($debit<=0&&$credit<=0)||($debit>0&&$credit>0))throw new InvalidArgumentException('Baris jurnal #'.($i+1).' tidak valid.');
         $a=$am[$aid]??null;if(!$a)throw new InvalidArgumentException('Akun pada baris #'.($i+1).' tidak ditemukan.');$owner=(int)($a['company_id']??0);if($owner!==0&&$owner!==$company)throw new RuntimeException('Akun jurnal bukan milik badan usaha.');
         $lb=($r['branch_id']??'')!==''?(int)$r['branch_id']:$branch;$ld=($r['department_id']??'')!==''?(int)$r['department_id']:$department;r4DimensionContext($s,$company,$lb,$ld);
-        $currency=strtoupper(trim((string)($r['transaction_currency']??'IDR')));if(!preg_match('/^[A-Z]{3}$/',$currency))throw new InvalidArgumentException('Kode mata uang tidak valid.');$rate=(string)($r['exchange_rate']??'1');if(!is_numeric($rate)||(float)$rate<=0)throw new InvalidArgumentException('Kurs tidak valid.');
-        $foreign=($r['foreign_amount']??'')!==''?r4MoneyInt($r['foreign_amount']):null;$base=max($debit,$credit);
+        $currency=strtoupper(trim((string)($r['transaction_currency']??'IDR')));if(!preg_match('/^[A-Z]{3}$/',$currency))throw new InvalidArgumentException('Kode mata uang tidak valid.');
+        $companyRow=null;foreach($s['companies']??[] as $c)if((int)($c['id']??0)===$company){$companyRow=$c;break;}$baseCurrency=strtoupper((string)($companyRow['base_currency']??$config['base_currency']??'IDR'));
+        $rate=(string)($r['exchange_rate']??'1');if(!is_numeric($rate)||(float)$rate<=0)throw new InvalidArgumentException('Kurs tidak valid.');
+        $foreignRaw=$r['foreign_amount']??'';$foreign=$foreignRaw!==''?r4MoneyInt($foreignRaw):null;$base=max($debit,$credit);
+        if($currency===$baseCurrency){if(abs((float)$rate-1.0)>0.00000001)throw new InvalidArgumentException('Exchange rate untuk mata uang dasar '.$baseCurrency.' harus 1.');$rate='1';if($foreign!==null&&$foreign!==$base)throw new InvalidArgumentException('Foreign amount untuk mata uang dasar harus sama dengan base amount.');$foreign=$base;}
+        else{if($foreign===null||$foreign<=0)throw new InvalidArgumentException('Foreign amount wajib untuk jurnal non-'.$baseCurrency.'.');$expected=(int)round($foreign*(float)$rate);if(abs($expected-$base)>1)throw new InvalidArgumentException('Base amount tidak konsisten dengan foreign amount × exchange rate pada baris #'.($i+1).'.');}
         $lines[]=['account_id'=>$aid,'debit'=>$debit,'credit'=>$credit,'description'=>trim((string)($r['description']??'')),'intercompany_company_id'=>($r['intercompany_company_id']??'')!==''?(int)$r['intercompany_company_id']:null,'branch_id'=>$lb,'department_id'=>$ld,'cost_center'=>trim((string)($r['cost_center']??''))?:null,'profit_center'=>trim((string)($r['profit_center']??''))?:null,'project_code'=>trim((string)($r['project_code']??''))?:null,'transaction_currency'=>$currency,'foreign_amount'=>$foreign,'exchange_rate'=>$rate,'base_amount'=>$base];$dr+=$debit;$cr+=$credit;
     }
     if(count($lines)<2||$dr!==$cr||$dr<=0)throw new RuntimeException('Jurnal multi-line harus balance dan minimal dua baris.');

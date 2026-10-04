@@ -165,13 +165,16 @@ CREATE TABLE audit_logs (
 
 CREATE TABLE fiscal_periods (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  company_id BIGINT UNSIGNED NULL,
   fiscal_year SMALLINT NOT NULL,
   period TINYINT UNSIGNED NOT NULL,
   status ENUM('open','soft_closed','closed') NOT NULL DEFAULT 'open',
   closed_at DATETIME NULL,
   closed_by BIGINT UNSIGNED NULL,
-  UNIQUE KEY uq_fiscal_period(fiscal_year,period),
+  UNIQUE KEY uq_fiscal_period_company(company_id,fiscal_year,period),
   KEY idx_period_status(fiscal_year,period,status),
+  KEY idx_period_company(company_id,fiscal_year,period,status),
+  CONSTRAINT fk_period_company FOREIGN KEY(company_id) REFERENCES companies(id),
   CONSTRAINT fk_period_user FOREIGN KEY(closed_by) REFERENCES users(id),
   CONSTRAINT chk_period_number CHECK(period BETWEEN 1 AND 12)
 ) ENGINE=InnoDB;
@@ -180,13 +183,17 @@ CREATE TABLE approval_policies (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   company_id BIGINT UNSIGNED NULL,
   document_type VARCHAR(50) NOT NULL,
+  level_no TINYINT UNSIGNED NOT NULL DEFAULT 1,
   threshold_amount DECIMAL(20,2) NOT NULL DEFAULT 0,
+  max_amount DECIMAL(20,2) NULL,
   min_approvers TINYINT UNSIGNED NOT NULL DEFAULT 1,
+  require_distinct_approvers TINYINT(1) NOT NULL DEFAULT 1,
   roles_json JSON NULL,
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   KEY idx_approval_policy(company_id,document_type,is_active),
-  CONSTRAINT fk_approval_policy_company FOREIGN KEY(company_id) REFERENCES companies(id)
+  CONSTRAINT fk_approval_policy_company FOREIGN KEY(company_id) REFERENCES companies(id),
+  CONSTRAINT chk_approval_policy_amounts CHECK(max_amount IS NULL OR max_amount >= threshold_amount)
 ) ENGINE=InnoDB;
 
 CREATE TABLE journal_batches (
@@ -246,20 +253,32 @@ CREATE TABLE journal_lines (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   journal_id BIGINT UNSIGNED NOT NULL,
   account_id BIGINT UNSIGNED NOT NULL,
+  branch_id BIGINT UNSIGNED NULL,
+  department_id BIGINT UNSIGNED NULL,
   description VARCHAR(255) NULL,
   debit DECIMAL(20,2) NOT NULL DEFAULT 0,
   credit DECIMAL(20,2) NOT NULL DEFAULT 0,
   cost_center VARCHAR(80) NULL,
   profit_center VARCHAR(80) NULL,
+  project_code VARCHAR(80) NULL,
+  transaction_currency CHAR(3) NOT NULL DEFAULT 'IDR',
+  foreign_amount DECIMAL(24,6) NULL,
+  exchange_rate DECIMAL(24,8) NOT NULL DEFAULT 1,
+  base_amount DECIMAL(20,2) NULL,
   intercompany_company_id BIGINT UNSIGNED NULL,
   KEY idx_jl_account(account_id),
   KEY idx_jl_intercompany(intercompany_company_id),
+  KEY idx_jl_dimensions(branch_id,department_id,cost_center,profit_center),
+  KEY idx_jl_currency(transaction_currency),
   CONSTRAINT fk_jl_journal FOREIGN KEY(journal_id) REFERENCES journal_entries(id) ON DELETE CASCADE,
   CONSTRAINT fk_jl_account FOREIGN KEY(account_id) REFERENCES chart_accounts(id),
+  CONSTRAINT fk_jl_branch FOREIGN KEY(branch_id) REFERENCES branches(id),
+  CONSTRAINT fk_jl_department FOREIGN KEY(department_id) REFERENCES departments(id),
   CONSTRAINT fk_jl_intercompany FOREIGN KEY(intercompany_company_id) REFERENCES companies(id),
   CONSTRAINT chk_jl_nonnegative CHECK(debit >= 0 AND credit >= 0),
   CONSTRAINT chk_jl_one_side CHECK(NOT(debit > 0 AND credit > 0)),
-  CONSTRAINT chk_jl_positive CHECK(debit > 0 OR credit > 0)
+  CONSTRAINT chk_jl_positive CHECK(debit > 0 OR credit > 0),
+  CONSTRAINT chk_jl_exchange_rate CHECK(exchange_rate > 0)
 ) ENGINE=InnoDB;
 
 CREATE TABLE journal_approvals (
@@ -355,6 +374,7 @@ CREATE TABLE fixed_assets (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   company_id BIGINT UNSIGNED NOT NULL,
   branch_id BIGINT UNSIGNED NULL,
+  department_id BIGINT UNSIGNED NULL,
   asset_code VARCHAR(40) NOT NULL,
   name VARCHAR(160) NOT NULL,
   category VARCHAR(80) NOT NULL,
@@ -363,11 +383,23 @@ CREATE TABLE fixed_assets (
   useful_life_months INT NOT NULL,
   residual_value DECIMAL(20,2) NOT NULL DEFAULT 0,
   depreciation_method ENUM('straight_line') NOT NULL DEFAULT 'straight_line',
+  asset_account_id BIGINT UNSIGNED NULL,
+  accumulated_depreciation_account_id BIGINT UNSIGNED NULL,
+  depreciation_expense_account_id BIGINT UNSIGNED NULL,
+  acquisition_journal_id BIGINT UNSIGNED NULL,
   status ENUM('active','disposed','sold') NOT NULL DEFAULT 'active',
+  disposal_date DATE NULL,
+  disposal_journal_id BIGINT UNSIGNED NULL,
   UNIQUE KEY uq_asset_code(asset_code),
   KEY idx_asset_company(company_id,status),
   CONSTRAINT fk_asset_company FOREIGN KEY(company_id) REFERENCES companies(id),
   CONSTRAINT fk_asset_branch FOREIGN KEY(branch_id) REFERENCES branches(id),
+  CONSTRAINT fk_asset_department FOREIGN KEY(department_id) REFERENCES departments(id),
+  CONSTRAINT fk_asset_account FOREIGN KEY(asset_account_id) REFERENCES chart_accounts(id),
+  CONSTRAINT fk_asset_accum_account FOREIGN KEY(accumulated_depreciation_account_id) REFERENCES chart_accounts(id),
+  CONSTRAINT fk_asset_dep_expense_account FOREIGN KEY(depreciation_expense_account_id) REFERENCES chart_accounts(id),
+  CONSTRAINT fk_asset_acq_journal FOREIGN KEY(acquisition_journal_id) REFERENCES journal_entries(id),
+  CONSTRAINT fk_asset_disposal_journal FOREIGN KEY(disposal_journal_id) REFERENCES journal_entries(id),
   CONSTRAINT chk_asset_life CHECK(useful_life_months > 0),
   CONSTRAINT chk_asset_values CHECK(acquisition_cost >= 0 AND residual_value >= 0 AND residual_value <= acquisition_cost)
 ) ENGINE=InnoDB;
@@ -390,20 +422,29 @@ CREATE TABLE invoices (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   company_id BIGINT UNSIGNED NOT NULL,
   branch_id BIGINT UNSIGNED NULL,
+  party_id BIGINT UNSIGNED NULL,
+  department_id BIGINT UNSIGNED NULL,
   invoice_type ENUM('receivable','payable') NOT NULL,
   invoice_no VARCHAR(60) NOT NULL,
   party_name VARCHAR(180) NOT NULL,
   issue_date DATE NOT NULL,
   due_date DATE NOT NULL,
+  subtotal DECIMAL(20,2) NOT NULL DEFAULT 0,
+  tax_total DECIMAL(20,2) NOT NULL DEFAULT 0,
   amount DECIMAL(20,2) NOT NULL,
   paid_amount DECIMAL(20,2) NOT NULL DEFAULT 0,
   status ENUM('open','partial','paid','void') NOT NULL DEFAULT 'open',
   currency CHAR(3) NOT NULL DEFAULT 'IDR',
   external_ref VARCHAR(120) NULL,
+  journal_id BIGINT UNSIGNED NULL,
+  notes TEXT NULL,
   UNIQUE KEY uq_invoice(company_id,invoice_no),
   KEY idx_invoice_due(company_id,invoice_type,due_date,status),
   CONSTRAINT fk_invoice_company FOREIGN KEY(company_id) REFERENCES companies(id),
   CONSTRAINT fk_invoice_branch FOREIGN KEY(branch_id) REFERENCES branches(id),
+  CONSTRAINT fk_invoice_party FOREIGN KEY(party_id) REFERENCES parties(id),
+  CONSTRAINT fk_invoice_department FOREIGN KEY(department_id) REFERENCES departments(id),
+  CONSTRAINT fk_invoice_journal FOREIGN KEY(journal_id) REFERENCES journal_entries(id),
   CONSTRAINT chk_invoice_amount CHECK(amount > 0),
   CONSTRAINT chk_invoice_paid CHECK(paid_amount >= 0 AND paid_amount <= amount)
 ) ENGINE=InnoDB;
@@ -432,6 +473,9 @@ CREATE TABLE invoice_payments (
   company_id BIGINT UNSIGNED NOT NULL,
   payment_date DATE NOT NULL,
   amount DECIMAL(20,2) NOT NULL,
+  currency CHAR(3) NOT NULL DEFAULT 'IDR',
+  foreign_amount DECIMAL(24,6) NULL,
+  exchange_rate DECIMAL(24,8) NOT NULL DEFAULT 1,
   method VARCHAR(40) NOT NULL DEFAULT 'bank',
   reference_no VARCHAR(120) NULL,
   journal_id BIGINT UNSIGNED NOT NULL,
@@ -442,7 +486,8 @@ CREATE TABLE invoice_payments (
   CONSTRAINT fk_payment_company FOREIGN KEY(company_id) REFERENCES companies(id),
   CONSTRAINT fk_payment_journal FOREIGN KEY(journal_id) REFERENCES journal_entries(id),
   CONSTRAINT fk_payment_user FOREIGN KEY(created_by) REFERENCES users(id),
-  CONSTRAINT chk_payment_amount CHECK(amount > 0)
+  CONSTRAINT chk_payment_amount CHECK(amount > 0),
+  CONSTRAINT chk_payment_exchange_rate CHECK(exchange_rate > 0)
 ) ENGINE=InnoDB;
 
 CREATE TABLE payment_allocations (
@@ -452,6 +497,7 @@ CREATE TABLE payment_allocations (
   allocated_amount DECIMAL(20,2) NOT NULL,
   allocated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   created_by BIGINT UNSIGNED NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uq_payment_invoice(payment_id,invoice_id),
   CONSTRAINT fk_alloc_payment FOREIGN KEY(payment_id) REFERENCES invoice_payments(id),
   CONSTRAINT fk_alloc_invoice FOREIGN KEY(invoice_id) REFERENCES invoices(id),
@@ -501,17 +547,28 @@ CREATE TABLE bank_reconciliation_sessions (
   company_id BIGINT UNSIGNED NOT NULL,
   bank_account_id BIGINT UNSIGNED NULL,
   period CHAR(7) NOT NULL,
+  period_start DATE NULL,
+  period_end DATE NULL,
   opening_balance DECIMAL(20,2) NOT NULL DEFAULT 0,
   closing_balance DECIMAL(20,2) NOT NULL DEFAULT 0,
+  matched_amount DECIMAL(20,2) NOT NULL DEFAULT 0,
+  difference_amount DECIMAL(20,2) NOT NULL DEFAULT 0,
   status ENUM('open','review','closed') NOT NULL DEFAULT 'open',
   prepared_by BIGINT UNSIGNED NULL,
   reviewed_by BIGINT UNSIGNED NULL,
   closed_at DATETIME NULL,
+  closed_by BIGINT UNSIGNED NULL,
+  reopened_at DATETIME NULL,
+  reopened_by BIGINT UNSIGNED NULL,
   UNIQUE KEY uq_bank_recon_session(company_id,bank_account_id,period),
+  KEY idx_bank_recon_period(company_id,period_start,period_end,status),
   CONSTRAINT fk_recon_company FOREIGN KEY(company_id) REFERENCES companies(id),
   CONSTRAINT fk_recon_bank_account FOREIGN KEY(bank_account_id) REFERENCES bank_accounts(id),
   CONSTRAINT fk_recon_preparer FOREIGN KEY(prepared_by) REFERENCES users(id),
-  CONSTRAINT fk_recon_reviewer FOREIGN KEY(reviewed_by) REFERENCES users(id)
+  CONSTRAINT fk_recon_reviewer FOREIGN KEY(reviewed_by) REFERENCES users(id),
+  CONSTRAINT fk_recon_closed_by FOREIGN KEY(closed_by) REFERENCES users(id),
+  CONSTRAINT fk_recon_reopened_by FOREIGN KEY(reopened_by) REFERENCES users(id),
+  CONSTRAINT chk_bank_recon_period CHECK(period_start IS NULL OR period_end IS NULL OR period_start <= period_end)
 ) ENGINE=InnoDB;
 
 CREATE TABLE bank_reconciliation_matches (
@@ -576,14 +633,18 @@ CREATE TABLE tax_transactions (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   company_id BIGINT UNSIGNED NOT NULL,
   tax_profile_id BIGINT UNSIGNED NOT NULL,
+  tax_code VARCHAR(40) NULL,
   journal_id BIGINT UNSIGNED NULL,
   transaction_date DATE NOT NULL,
+  filing_period CHAR(7) NULL,
   tax_base DECIMAL(20,2) NOT NULL,
   tax_amount DECIMAL(20,2) NOT NULL,
   direction ENUM('output','input','withholding') NOT NULL,
   external_ref VARCHAR(120) NULL,
+  status ENUM('open','reported','paid','void') NOT NULL DEFAULT 'open',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   KEY idx_tax_company_period(company_id,transaction_date,direction),
+  KEY idx_tax_filing(company_id,filing_period,status),
   CONSTRAINT fk_tax_tx_company FOREIGN KEY(company_id) REFERENCES companies(id),
   CONSTRAINT fk_tax_tx_profile FOREIGN KEY(tax_profile_id) REFERENCES tax_profiles(id),
   CONSTRAINT fk_tax_tx_journal FOREIGN KEY(journal_id) REFERENCES journal_entries(id),
@@ -615,8 +676,11 @@ CREATE TABLE consolidation_runs (
   status ENUM('draft','validated','posted','locked') NOT NULL DEFAULT 'draft',
   entity_count INT UNSIGNED NOT NULL DEFAULT 0,
   elimination_count INT UNSIGNED NOT NULL DEFAULT 0,
+  scope_json JSON NULL,
   created_by BIGINT UNSIGNED NULL,
   validated_by BIGINT UNSIGNED NULL,
+  posted_at DATETIME NULL,
+  locked_at DATETIME NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uq_consolidation_run(period,run_no),
   CONSTRAINT fk_consolidation_creator FOREIGN KEY(created_by) REFERENCES users(id),
@@ -629,6 +693,8 @@ CREATE TABLE elimination_entries (
   from_company_id BIGINT UNSIGNED NOT NULL,
   to_company_id BIGINT UNSIGNED NOT NULL,
   account_id BIGINT UNSIGNED NOT NULL,
+  branch_id BIGINT UNSIGNED NULL,
+  department_id BIGINT UNSIGNED NULL,
   debit DECIMAL(20,2) NOT NULL DEFAULT 0,
   credit DECIMAL(20,2) NOT NULL DEFAULT 0,
   reference VARCHAR(120) NULL,
@@ -638,6 +704,8 @@ CREATE TABLE elimination_entries (
   CONSTRAINT fk_elimination_entry_from FOREIGN KEY(from_company_id) REFERENCES companies(id),
   CONSTRAINT fk_elimination_entry_to FOREIGN KEY(to_company_id) REFERENCES companies(id),
   CONSTRAINT fk_elimination_entry_account FOREIGN KEY(account_id) REFERENCES chart_accounts(id),
+  CONSTRAINT fk_elimination_entry_branch FOREIGN KEY(branch_id) REFERENCES branches(id),
+  CONSTRAINT fk_elimination_entry_department FOREIGN KEY(department_id) REFERENCES departments(id),
   CONSTRAINT chk_elimination_line CHECK((debit > 0 AND credit = 0) OR (credit > 0 AND debit = 0))
 ) ENGINE=InnoDB;
 
@@ -663,28 +731,38 @@ CREATE TABLE integration_events (
   idempotency_key CHAR(64) NOT NULL,
   company_id BIGINT UNSIGNED NOT NULL,
   event_type VARCHAR(80) NOT NULL,
+  event_version VARCHAR(20) NOT NULL DEFAULT '1',
+  mapping_version VARCHAR(40) NULL,
   occurred_at DATETIME NULL,
   received_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   status ENUM('received','validated','posted','failed','dead_letter') NOT NULL DEFAULT 'received',
   payload_json JSON NOT NULL,
   error_text TEXT NULL,
+  attempts TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  next_attempt_at DATETIME NULL,
+  posted_journal_id BIGINT UNSIGNED NULL,
   UNIQUE KEY uq_integration_idempotency(idempotency_key),
   KEY idx_integration_status(source,status,received_at),
-  CONSTRAINT fk_integration_company FOREIGN KEY(company_id) REFERENCES companies(id)
+  CONSTRAINT fk_integration_company FOREIGN KEY(company_id) REFERENCES companies(id),
+  CONSTRAINT fk_integration_posted_journal FOREIGN KEY(posted_journal_id) REFERENCES journal_entries(id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE integration_outbox (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  company_id BIGINT UNSIGNED NULL,
   event_type VARCHAR(80) NOT NULL,
   aggregate_type VARCHAR(80) NOT NULL,
   aggregate_id VARCHAR(80) NOT NULL,
+  idempotency_key CHAR(64) NULL,
   payload_json JSON NOT NULL,
   status ENUM('pending','sent','failed') NOT NULL DEFAULT 'pending',
   attempts TINYINT UNSIGNED NOT NULL DEFAULT 0,
   available_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   sent_at DATETIME NULL,
   last_error TEXT NULL,
-  KEY idx_outbox_delivery(status,available_at)
+  UNIQUE KEY uq_outbox_idempotency(idempotency_key),
+  KEY idx_outbox_delivery(status,available_at),
+  CONSTRAINT fk_outbox_company FOREIGN KEY(company_id) REFERENCES companies(id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE settlement_batches (
@@ -710,19 +788,6 @@ CREATE TABLE settlement_batches (
 -- Adds end-to-end dimensions, counterparties, multicurrency, closing controls,
 -- integration delivery controls, real reconciliation/import metadata, and report snapshots.
 
-ALTER TABLE journal_lines
-  ADD COLUMN branch_id BIGINT UNSIGNED NULL AFTER account_id,
-  ADD COLUMN department_id BIGINT UNSIGNED NULL AFTER branch_id,
-  ADD COLUMN project_code VARCHAR(80) NULL AFTER profit_center,
-  ADD COLUMN transaction_currency CHAR(3) NOT NULL DEFAULT 'IDR' AFTER project_code,
-  ADD COLUMN foreign_amount DECIMAL(24,6) NULL AFTER transaction_currency,
-  ADD COLUMN exchange_rate DECIMAL(24,8) NOT NULL DEFAULT 1 AFTER foreign_amount,
-  ADD COLUMN base_amount DECIMAL(20,2) NULL AFTER exchange_rate,
-  ADD KEY idx_jl_dimensions(branch_id,department_id,cost_center,profit_center),
-  ADD KEY idx_jl_currency(transaction_currency),
-  ADD CONSTRAINT fk_jl_branch FOREIGN KEY(branch_id) REFERENCES branches(id),
-  ADD CONSTRAINT fk_jl_department FOREIGN KEY(department_id) REFERENCES departments(id),
-  ADD CONSTRAINT chk_jl_exchange_rate CHECK(exchange_rate > 0);
 
 CREATE TABLE parties (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -747,24 +812,8 @@ CREATE TABLE parties (
   CONSTRAINT fk_party_ap FOREIGN KEY(ap_account_id) REFERENCES chart_accounts(id)
 ) ENGINE=InnoDB;
 
-ALTER TABLE invoices
-  ADD COLUMN party_id BIGINT UNSIGNED NULL AFTER branch_id,
-  ADD COLUMN department_id BIGINT UNSIGNED NULL AFTER party_id,
-  ADD COLUMN subtotal DECIMAL(20,2) NOT NULL DEFAULT 0 AFTER due_date,
-  ADD COLUMN tax_total DECIMAL(20,2) NOT NULL DEFAULT 0 AFTER subtotal,
-  ADD COLUMN journal_id BIGINT UNSIGNED NULL AFTER external_ref,
-  ADD COLUMN notes TEXT NULL AFTER journal_id,
-  ADD CONSTRAINT fk_invoice_party FOREIGN KEY(party_id) REFERENCES parties(id),
-  ADD CONSTRAINT fk_invoice_department FOREIGN KEY(department_id) REFERENCES departments(id),
-  ADD CONSTRAINT fk_invoice_journal FOREIGN KEY(journal_id) REFERENCES journal_entries(id);
 
-ALTER TABLE invoice_payments
-  ADD COLUMN currency CHAR(3) NOT NULL DEFAULT 'IDR' AFTER amount,
-  ADD COLUMN foreign_amount DECIMAL(24,6) NULL AFTER currency,
-  ADD COLUMN exchange_rate DECIMAL(24,8) NOT NULL DEFAULT 1 AFTER foreign_amount;
 
-ALTER TABLE payment_allocations
-  ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
 CREATE TABLE invoice_adjustments (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -805,36 +854,8 @@ CREATE TABLE bank_import_profiles (
   CONSTRAINT fk_bank_profile_account FOREIGN KEY(bank_account_id) REFERENCES bank_accounts(id)
 ) ENGINE=InnoDB;
 
-ALTER TABLE bank_reconciliation_sessions
-  ADD COLUMN opening_balance DECIMAL(20,2) NOT NULL DEFAULT 0 AFTER period_end,
-  ADD COLUMN closing_balance DECIMAL(20,2) NOT NULL DEFAULT 0 AFTER opening_balance,
-  ADD COLUMN matched_amount DECIMAL(20,2) NOT NULL DEFAULT 0 AFTER closing_balance,
-  ADD COLUMN difference_amount DECIMAL(20,2) NOT NULL DEFAULT 0 AFTER matched_amount,
-  ADD COLUMN reopened_at DATETIME NULL AFTER closed_at,
-  ADD COLUMN reopened_by BIGINT UNSIGNED NULL AFTER reopened_at,
-  ADD CONSTRAINT fk_recon_reopened_by FOREIGN KEY(reopened_by) REFERENCES users(id);
 
-ALTER TABLE fixed_assets
-  ADD COLUMN department_id BIGINT UNSIGNED NULL AFTER branch_id,
-  ADD COLUMN asset_account_id BIGINT UNSIGNED NULL AFTER depreciation_method,
-  ADD COLUMN accumulated_depreciation_account_id BIGINT UNSIGNED NULL AFTER asset_account_id,
-  ADD COLUMN depreciation_expense_account_id BIGINT UNSIGNED NULL AFTER accumulated_depreciation_account_id,
-  ADD COLUMN acquisition_journal_id BIGINT UNSIGNED NULL AFTER depreciation_expense_account_id,
-  ADD COLUMN disposal_date DATE NULL AFTER status,
-  ADD COLUMN disposal_journal_id BIGINT UNSIGNED NULL AFTER disposal_date,
-  ADD CONSTRAINT fk_asset_department FOREIGN KEY(department_id) REFERENCES departments(id),
-  ADD CONSTRAINT fk_asset_account FOREIGN KEY(asset_account_id) REFERENCES chart_accounts(id),
-  ADD CONSTRAINT fk_asset_accum_account FOREIGN KEY(accumulated_depreciation_account_id) REFERENCES chart_accounts(id),
-  ADD CONSTRAINT fk_asset_dep_expense_account FOREIGN KEY(depreciation_expense_account_id) REFERENCES chart_accounts(id),
-  ADD CONSTRAINT fk_asset_acq_journal FOREIGN KEY(acquisition_journal_id) REFERENCES journal_entries(id),
-  ADD CONSTRAINT fk_asset_disposal_journal FOREIGN KEY(disposal_journal_id) REFERENCES journal_entries(id);
 
-ALTER TABLE fiscal_periods
-  ADD COLUMN company_id BIGINT UNSIGNED NULL FIRST,
-  DROP INDEX uq_fiscal_period,
-  ADD UNIQUE KEY uq_fiscal_period_company(company_id,fiscal_year,period),
-  ADD KEY idx_period_company(company_id,fiscal_year,period,status),
-  ADD CONSTRAINT fk_fiscal_period_company FOREIGN KEY(company_id) REFERENCES companies(id);
 
 CREATE TABLE period_close_tasks (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -852,10 +873,6 @@ CREATE TABLE period_close_tasks (
   CONSTRAINT fk_close_task_user FOREIGN KEY(completed_by) REFERENCES users(id)
 ) ENGINE=InnoDB;
 
-ALTER TABLE approval_policies
-  ADD COLUMN level_no TINYINT UNSIGNED NOT NULL DEFAULT 1 AFTER document_type,
-  ADD COLUMN max_amount DECIMAL(20,2) NULL AFTER threshold_amount,
-  ADD COLUMN require_distinct_approvers TINYINT(1) NOT NULL DEFAULT 1 AFTER min_approvers;
 
 CREATE TABLE approval_decisions (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -869,10 +886,6 @@ CREATE TABLE approval_decisions (
   CONSTRAINT fk_approval_decision_user FOREIGN KEY(approver_id) REFERENCES users(id)
 ) ENGINE=InnoDB;
 
-ALTER TABLE tax_transactions
-  ADD COLUMN tax_code VARCHAR(40) NULL AFTER tax_profile_id,
-  ADD COLUMN filing_period CHAR(7) NULL AFTER transaction_date,
-  ADD COLUMN status ENUM('open','reported','paid','void') NOT NULL DEFAULT 'open' AFTER external_ref;
 
 CREATE TABLE fx_revaluation_runs (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -891,30 +904,9 @@ CREATE TABLE fx_revaluation_runs (
   CONSTRAINT fk_fx_reval_user FOREIGN KEY(created_by) REFERENCES users(id)
 ) ENGINE=InnoDB;
 
-ALTER TABLE consolidation_runs
-  ADD COLUMN scope_json JSON NULL AFTER elimination_count,
-  ADD COLUMN posted_at DATETIME NULL AFTER validated_by,
-  ADD COLUMN locked_at DATETIME NULL AFTER posted_at;
 
-ALTER TABLE elimination_entries
-  ADD COLUMN branch_id BIGINT UNSIGNED NULL AFTER account_id,
-  ADD COLUMN department_id BIGINT UNSIGNED NULL AFTER branch_id,
-  ADD CONSTRAINT fk_elimination_entry_branch FOREIGN KEY(branch_id) REFERENCES branches(id),
-  ADD CONSTRAINT fk_elimination_entry_department FOREIGN KEY(department_id) REFERENCES departments(id);
 
-ALTER TABLE integration_events
-  ADD COLUMN event_version VARCHAR(20) NOT NULL DEFAULT '1' AFTER event_type,
-  ADD COLUMN mapping_version VARCHAR(40) NULL AFTER event_version,
-  ADD COLUMN attempts TINYINT UNSIGNED NOT NULL DEFAULT 0 AFTER error_text,
-  ADD COLUMN next_attempt_at DATETIME NULL AFTER attempts,
-  ADD COLUMN posted_journal_id BIGINT UNSIGNED NULL AFTER next_attempt_at,
-  ADD CONSTRAINT fk_integration_posted_journal FOREIGN KEY(posted_journal_id) REFERENCES journal_entries(id);
 
-ALTER TABLE integration_outbox
-  ADD COLUMN company_id BIGINT UNSIGNED NULL AFTER id,
-  ADD COLUMN idempotency_key CHAR(64) NULL AFTER aggregate_id,
-  ADD UNIQUE KEY uq_outbox_idempotency(idempotency_key),
-  ADD CONSTRAINT fk_outbox_company FOREIGN KEY(company_id) REFERENCES companies(id);
 
 CREATE TABLE report_snapshots (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

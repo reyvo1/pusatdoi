@@ -1,28 +1,27 @@
-# VALIDATION — Enterprise R7.1 UAT Repair Candidate
+# VALIDATION — Enterprise R7.2 Root-Fix UAT Candidate
 
 Date: 2026-10-04
 
-## Local deterministic gates
-- Schema/migration/CI contract: 6/6 PASS
-- Legacy regression: 62/62 PASS
-- Enterprise domain: 35/35 PASS
-- Enterprise advanced: 33/33 PASS
-- R4 workflow: 17/17 PASS
-- R5 operations: 22/22 PASS
-- R6 usability: 6/6 PASS
-- R7 group controls: 20/20 PASS
-- Total rule/workflow assertions: 201 PASS
-- Architecture gate: PASS
-- Production fail-closed: PASS
-- PHP lint: PASS
-- JavaScript syntax (`app.js`, `r4-ui.js`, `r5-ui.js`, `r6-ui.js`, `r7-ui.js`): PASS
+Local validation completed after root-cause repair:
 
-## GitHub log root-cause repair
-See `GITHUB-UAT-FAILURE-ANALYSIS.md`. The repair addresses:
-1. duplicate `uq_payment_invoice` in fresh schema / v7;
-2. `uq_budget` foreign-key support during v6 migration;
-3. date-dependent consolidation test;
-4. malformed standalone MySQL workflow command block.
+| Gate | Result |
+|---|---|
+| Schema / migration contract | 33/33 PASS |
+| Frontend / backend contract | 26/26 PASS |
+| Legacy regression | 62/62 PASS |
+| Enterprise domain | 35/35 PASS |
+| Enterprise advanced | 33/33 PASS |
+| R4 workflows | 21/21 PASS |
+| R5 operations | 22/22 PASS |
+| R6 usability | 6/6 PASS |
+| R7 group controls | 20/20 PASS |
+| PHP syntax | PASS |
+| JavaScript syntax | PASS |
+| Architecture | PASS |
+| Production fail-closed | PASS |
+| Demo HTTP page sweep | 33/33 HTTP 200 |
+| Demo PHP warning/fatal sweep | 0 |
 
-## Mandatory next gate
-Re-run both GitHub Actions workflows on MySQL 8.4. Do not mark Production Final until Full UAT and standalone MySQL Production Simulation are green.
+Total contract/rule/workflow assertions: **258 PASS, 0 FAIL**.
+
+Not claimed locally: MySQL 8.4 execution and Playwright production round-trip. Those are intentionally delegated to GitHub Actions and remain required before Production Final.

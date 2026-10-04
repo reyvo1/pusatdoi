@@ -9,6 +9,31 @@ await page.goto(base+'/index.php?page=dashboard');await must(await page.locator(
 await page.locator('#themeBtn').click();await must(await page.locator('body').evaluate(el=>el.classList.contains('dark')),'dark mode toggle');
 await page.goto(base+'/index.php?page=daily-income');await must(await page.locator('#dailyIncomeCompany').count()===1,'daily income company selector');await must(await page.locator('.r4-income-amount').count()>=1,'daily income categories render');
 
+// Real frontend -> API -> backend -> MySQL proof for dimensional multi-currency journal.
+await page.goto(base+'/index.php?page=transactions');
+await page.getByRole('button',{name:/Jurnal Baru/}).click();
+await must(await page.locator('#r4Modal.open').count()===1,'journal enterprise modal opens');
+await page.locator('#r4Form [name=company_id]').selectOption('1');
+await page.locator('#r4Form [name=currency]').selectOption('USD');
+await page.locator('#r4Form [name=exchange_rate]').fill('16000');
+await page.locator('#r4Form [name=description]').fill('UAT FX journal browser');
+const jr=page.locator('#r4Form .journal-row');
+await jr.nth(0).locator('[name=account_id]').selectOption('1');
+await jr.nth(0).locator('[name=debit]').fill('1600000');
+await jr.nth(0).locator('[name=credit]').fill('0');
+await jr.nth(0).locator('[name=foreign_amount]').fill('100');
+await jr.nth(0).locator('[name=description]').fill('USD debit');
+await jr.nth(1).locator('[name=account_id]').selectOption('6');
+await jr.nth(1).locator('[name=debit]').fill('0');
+await jr.nth(1).locator('[name=credit]').fill('1600000');
+await jr.nth(1).locator('[name=foreign_amount]').fill('100');
+await jr.nth(1).locator('[name=description]').fill('USD credit');
+await page.locator('#r4SubmitBtn').click();
+await page.locator('#r4FormStatus').filter({hasText:/berhasil|✓/i}).waitFor({timeout:10000});
+await page.waitForTimeout(800);
+await page.goto(base+'/index.php?page=transactions');
+await must((await page.locator('body').innerText()).includes('UAT FX journal browser'),'multi-currency journal survives frontend/API/backend/MySQL round-trip');
+
 
 await page.goto(base+'/index.php?page=daily-expense');await must(await page.locator('#dailyExpenseCompany').count()===1,'daily expense company selector');await must(await page.locator('.r5-expense-amount').count()>=1,'daily expense categories render');
 await page.goto(base+'/index.php?page=treasury');await page.getByRole('button',{name:/Transfer Rekening/}).click();await must(await page.locator('#r4Modal.open').count()===1,'treasury transfer modal opens');await page.getByRole('button',{name:'Batal'}).click();

@@ -1,12 +1,10 @@
-NEXA Group Finance Enterprise R7.1 UAT Repair Candidate
+NEXA Group Finance Enterprise R7.2 Root-Fix UAT Candidate
+Version: 7.0.2-r7.2-uat
 Date: 2026-10-04
-Version: 7.0.1-r7.1-uat
-Files: 205
-PHP files: 146
-PHP lines: 4514
-SQL lines: 6017
-Local assertions: 201 PASS
-Architecture: PASS
-Production fail-closed: PASS
-PHP/JS lint: PASS
-GitHub MySQL 8.4 re-run: REQUIRED
+Files: 207
+PHP files: 147
+PHP LOC: 4674
+SQL LOC: 6009
+Local assertions: 258 PASS / 0 FAIL
+Demo HTTP routes: 33/33 HTTP 200
+Mandatory remaining proof: GitHub MySQL 8.4 + migration + HTTP + Browser E2E + scale
