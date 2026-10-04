@@ -38,7 +38,7 @@ try{
 
     $run=r4CreateConsolidationRun(['period'=>'2026-09','entries'=>[['from_company_id'=>1,'to_company_id'=>2,'account_id'=>9,'debit'=>1000000,'credit'=>0,'description'=>'Eliminate IC receivable'],['from_company_id'=>2,'to_company_id'=>1,'account_id'=>10,'debit'=>0,'credit'=>1000000,'description'=>'Eliminate IC payable']]]);
     $s=loadStore();$adj=r4ConsolidationAdjustments($s,'2026-09');ok4(!empty($run['id'])&&count($adj['lines'])===2,'Consolidation run creates report-layer elimination entries');
-    $rep=financialReportData(null);ok4(isset($rep['consolidation_adjustments'])&&count($rep['consolidation_adjustments']['lines'])>=2,'Group report applies consolidation adjustments');
+    $prevGet=$_GET;$_GET['period']='2026-09';$rep=financialReportData(null);$_GET=$prevGet;ok4(isset($rep['consolidation_adjustments'])&&count($rep['consolidation_adjustments']['lines'])>=2,'Group report applies consolidation adjustments');
 
     $pol=r4CreateApprovalPolicy(['company_id'=>1,'document_type'=>'journal','level_no'=>1,'threshold_amount'=>20000000,'min_approvers'=>1,'roles'=>['group_owner','group_finance']]);ok4(!empty($pol['id']),'Approval policy is runtime-managed');
 

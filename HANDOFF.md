@@ -1,18 +1,10 @@
-# HANDOFF — NEXA Enterprise R7 UAT Candidate
+# HANDOFF — NEXA Enterprise R7.1 UAT Repair Candidate
 
-Baseline: `NEXA-GROUP-FINANCE-ENTERPRISE-R7-UAT-CANDIDATE-2026-09-26.zip`
+Baseline: `NEXA-GROUP-FINANCE-ENTERPRISE-R7.1-UAT-REPAIR-2026-10-04.zip`
 
-Do not revert to R2/R3/R4. R7 includes the finance-operation and usability layers from R5/R6 plus group-control workflows (advance, financing, equity, scenario planning, notification/KPI).
+GitHub target: `reyvo1/pusatdoi`
+Local Ubuntu repo: `/home/ivo/Desktop/program/pusatdoi`
 
-Canonical fresh schema: `database/schema_enterprise_r7.sql`.
-Canonical upgrade chain from R2: v6, v7, v8, v9, v10 in order.
+The 2026-10-04 GitHub red run was analyzed from two uploaded log ZIPs. Root causes and fixes are documented in `GITHUB-UAT-FAILURE-ANALYSIS.md`. Local deterministic gates are green (201 assertions plus architecture/fail-closed/lint).
 
-Primary local gate:
-
-```bash
-bash tests/run-all-local.sh
-```
-
-Primary remote gate: GitHub Actions `NEXA Full UAT` on `reyvo1/doipusat`.
-
-If GitHub is red, preserve safety controls and fix root cause. Never bypass RBAC, approval thresholds, period locks, journal-balance checks, entity scope, migration constraints or production fail-closed behavior merely to pass CI.
+Do not weaken UAT. Next action is to overwrite the repo with R7.1 repair source, commit, push, and evaluate the new GitHub logs. MySQL 8.4 fresh schema and R2→R7 migration are still mandatory external proof.

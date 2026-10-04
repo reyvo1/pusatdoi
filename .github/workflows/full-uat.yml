@@ -28,6 +28,8 @@ jobs:
         run: find . -name '*.php' -print0 | xargs -0 -n1 php -l
       - name: JavaScript syntax
         run: node --check assets/app.js
+      - name: Schema / migration contract
+        run: php tests/schema-contract.php
       - name: Demo accounting regression
         env: { NEXA_DEMO_MODE: 'true' }
         run: php tests/run.php

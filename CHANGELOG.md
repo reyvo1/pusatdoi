@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## Enterprise R7.1 UAT Repair Candidate — 2026-10-04
+- Fixed MySQL 8.4 fresh-schema failure: removed duplicate `uq_payment_invoice` creation from R4 delta/fresh schemas.
+- Fixed R2→R7 migration blocker: added dedicated `idx_budget_company` before dropping legacy `uq_budget`, so the company foreign key remains supported.
+- Fixed the same duplicate index in migration v7 so the upgrade chain can proceed past R3.
+- Fixed R4 consolidation regression test to explicitly request the same accounting period as its fixture (`2026-09`); this removes calendar-date nondeterminism without weakening the report assertion.
+- Fixed malformed `mysql-production.yml` command block so MySQL tests execute as separate commands.
+- Added `tests/schema-contract.php` and wired it into Full UAT core regression to prevent recurrence of these schema/migration/workflow contract defects.
+
 ## Enterprise R7 UAT Candidate — 2026-09-26
 
 ### Group finance controls

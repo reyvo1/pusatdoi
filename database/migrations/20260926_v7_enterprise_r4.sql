@@ -56,8 +56,7 @@ ALTER TABLE invoice_payments
   ADD COLUMN exchange_rate DECIMAL(24,8) NOT NULL DEFAULT 1 AFTER foreign_amount;
 
 ALTER TABLE payment_allocations
-  ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  ADD UNIQUE KEY uq_payment_invoice(payment_id,invoice_id);
+  ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
 CREATE TABLE invoice_adjustments (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

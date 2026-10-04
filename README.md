@@ -1,10 +1,10 @@
-# NEXA Group Finance — Enterprise R7 UAT Candidate
+# NEXA Group Finance — Enterprise R7.1 UAT Repair Candidate
 
 NEXA Group Finance adalah pusat keuangan multi-badan-usaha berbasis PHP + MySQL untuk konsolidasi hotel, retail, kos/properti, F&B, jasa, dan entitas lain dalam satu group. Runtime produksi tidak membutuhkan Node.js; Node/Playwright hanya digunakan pada CI Browser E2E.
 
 ## Status
 
-**Enterprise R7 UAT Candidate (`7.0.0-r7-uat`)**. Source ini belum diberi label Production Final sampai seluruh GitHub Full UAT hijau pada MySQL 8.4, migration chain, HTTP/security/reports, Browser E2E, dan high-volume simulation.
+**Enterprise R7.1 UAT Repair Candidate (`7.0.1-r7.1-uat`)**. Repair ini berasal dari analisis root-cause log GitHub 2026-10-04; lihat `GITHUB-UAT-FAILURE-ANALYSIS.md`. Source ini belum diberi label Production Final sampai seluruh GitHub Full UAT hijau pada MySQL 8.4, migration chain, HTTP/security/reports, Browser E2E, dan high-volume simulation.
 
 ## Fitur utama
 

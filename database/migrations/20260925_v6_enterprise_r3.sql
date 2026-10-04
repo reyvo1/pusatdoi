@@ -283,6 +283,7 @@ ALTER TABLE audit_logs ADD COLUMN request_id VARCHAR(80) NULL AFTER payload_json
 ALTER TABLE audit_logs ADD KEY idx_audit_company(company_id,created_at);
 ALTER TABLE audit_logs ADD CONSTRAINT fk_audit_company FOREIGN KEY(company_id) REFERENCES companies(id);
 ALTER TABLE bank_accounts ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER is_active;
+ALTER TABLE budgets ADD KEY idx_budget_company(company_id);
 ALTER TABLE budgets DROP INDEX uq_budget;
 ALTER TABLE budgets ADD COLUMN branch_id BIGINT UNSIGNED NULL AFTER company_id;
 ALTER TABLE budgets ADD COLUMN department_id BIGINT UNSIGNED NULL AFTER branch_id;

@@ -42,12 +42,11 @@ jobs:
           mysql -h127.0.0.1 -uroot -proot < database/seed_enterprise.sql
       - name: Verify Enterprise schema
         run: php tests/schema-enterprise.php
-      - name: Run production MySQL test
-        run: php tests/mysql-production.php
+      - name: Run production MySQL tests
+        run: |
+          php tests/mysql-production.php
           php tests/r5-mysql-uat.php
           php tests/r7-mysql-uat.php
-      - name: R5 operations MySQL test
-        run: php tests/r5-mysql-uat.php
       - name: Health endpoint smoke
         run: |
           php -S 127.0.0.1:8080 >/tmp/nexa-server.log 2>&1 &

@@ -331,6 +331,7 @@ CREATE TABLE budgets (
   account_id BIGINT UNSIGNED NOT NULL,
   amount DECIMAL(20,2) NOT NULL DEFAULT 0,
   scenario VARCHAR(40) NOT NULL DEFAULT 'budget',
+  KEY idx_budget_company(company_id),
   UNIQUE KEY uq_budget(company_id,branch_scope,department_scope,fiscal_year,period,account_id,scenario),
   CONSTRAINT fk_budget_company FOREIGN KEY(company_id) REFERENCES companies(id),
   CONSTRAINT fk_budget_branch FOREIGN KEY(branch_id) REFERENCES branches(id),

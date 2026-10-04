@@ -342,6 +342,7 @@ CREATE TABLE budgets (
   account_id BIGINT UNSIGNED NOT NULL,
   amount DECIMAL(20,2) NOT NULL DEFAULT 0,
   scenario VARCHAR(40) NOT NULL DEFAULT 'budget',
+  KEY idx_budget_company(company_id),
   UNIQUE KEY uq_budget(company_id,branch_scope,department_scope,fiscal_year,period,account_id,scenario),
   CONSTRAINT fk_budget_company FOREIGN KEY(company_id) REFERENCES companies(id),
   CONSTRAINT fk_budget_branch FOREIGN KEY(branch_id) REFERENCES branches(id),
@@ -763,8 +764,7 @@ ALTER TABLE invoice_payments
   ADD COLUMN exchange_rate DECIMAL(24,8) NOT NULL DEFAULT 1 AFTER foreign_amount;
 
 ALTER TABLE payment_allocations
-  ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  ADD UNIQUE KEY uq_payment_invoice(payment_id,invoice_id);
+  ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
 CREATE TABLE invoice_adjustments (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
