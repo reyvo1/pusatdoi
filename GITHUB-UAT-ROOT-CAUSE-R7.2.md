@@ -86,3 +86,29 @@ Current local result after repair:
 ## Still requires GitHub proof
 
 The local runtime has no MySQL server / PDO MySQL driver. Therefore R7.2 is a UAT repair candidate, not Production Final. MySQL 8.4 fresh install, R2→R7 migration, production HTTP, browser round-trip and scale simulation must all pass in GitHub Actions before final sign-off.
+
+
+## 2026-10-04 follow-up — commit 601be22a
+
+GitHub Actions **did run** for commit `601be22a21c79d125f06a507646b2f2f74ad0c18`. The Full UAT and MySQL Production Simulation both executed. Core/static regression passed; MySQL-dependent gates exposed the next causal layer.
+
+### Root cause 4 — fresh schema had one forward foreign-key dependency
+
+The canonical schema created `invoices` before `parties`, while `invoices.party_id` had a strict foreign key to `parties(id)`. MySQL 8.4 correctly rejected the fresh import with `ERROR 1824: Failed to open the referenced table 'parties'`.
+
+Permanent correction: `parties` is created before `invoices`; the FK remains enabled. `tests/schema-contract.php` now parses every fresh-schema FK and rejects any reference to a table that is created later. This fixes the source dependency graph rather than disabling foreign-key checks or removing the constraint.
+
+### Migration preservation was measuring the wrong invariant
+
+The R2 fixture contains 10 legacy Chart-of-Accounts rows. R4/R5 migrations intentionally add exactly five global system accounts required by new accounting workflows: `5401`, `5501`, `3102`, `1161`, `2201`. Therefore a raw `COUNT(*)` equality (10 before versus 15 after) falsely reported data corruption.
+
+The gate is now **stronger**, not weaker: it snapshots every legacy company and legacy account row, compares those exact rows after migration, then independently requires the five system accounts with exact codes, names, types and flags, and finally verifies the final account count is `legacy + 5`. Unexpected mutation, deletion, or extra insertion still fails the job.
+
+### Local proof after this repair
+
+- Schema/migration contract: 37/37 PASS
+- Frontend/backend contract: 26/26 PASS
+- All existing legacy/domain/R4/R5/R6/R7 gates remain PASS
+- PHP/JS syntax PASS
+- GitHub workflow YAML parse PASS
+- No UAT assertion removed, bypassed, or converted to continue-on-error

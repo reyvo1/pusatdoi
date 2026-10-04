@@ -418,6 +418,30 @@ CREATE TABLE asset_depreciation_schedule (
   CONSTRAINT fk_asset_dep_journal FOREIGN KEY(journal_id) REFERENCES journal_entries(id)
 ) ENGINE=InnoDB;
 
+-- Party master must exist before invoices because invoices.party_id has a strict FK.
+CREATE TABLE parties (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  company_id BIGINT UNSIGNED NOT NULL,
+  party_type ENUM('customer','vendor','both') NOT NULL,
+  code VARCHAR(50) NOT NULL,
+  name VARCHAR(180) NOT NULL,
+  tax_id VARCHAR(80) NULL,
+  email VARCHAR(190) NULL,
+  phone VARCHAR(80) NULL,
+  address_text TEXT NULL,
+  currency CHAR(3) NOT NULL DEFAULT 'IDR',
+  ar_account_id BIGINT UNSIGNED NULL,
+  ap_account_id BIGINT UNSIGNED NULL,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_party_code(company_id,code),
+  KEY idx_party_type(company_id,party_type,is_active),
+  CONSTRAINT fk_party_company FOREIGN KEY(company_id) REFERENCES companies(id),
+  CONSTRAINT fk_party_ar FOREIGN KEY(ar_account_id) REFERENCES chart_accounts(id),
+  CONSTRAINT fk_party_ap FOREIGN KEY(ap_account_id) REFERENCES chart_accounts(id)
+) ENGINE=InnoDB;
+
 CREATE TABLE invoices (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   company_id BIGINT UNSIGNED NOT NULL,
@@ -727,7 +751,7 @@ CREATE TABLE integration_staging (
 CREATE TABLE integration_events (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   source VARCHAR(80) NOT NULL,
-  external_ref VARCHAR(150) NOT NULL,
+  external_ref VARCHAR(160) NOT NULL,
   idempotency_key CHAR(64) NOT NULL,
   company_id BIGINT UNSIGNED NOT NULL,
   event_type VARCHAR(80) NOT NULL,
@@ -789,28 +813,7 @@ CREATE TABLE settlement_batches (
 -- integration delivery controls, real reconciliation/import metadata, and report snapshots.
 
 
-CREATE TABLE parties (
-  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  company_id BIGINT UNSIGNED NOT NULL,
-  party_type ENUM('customer','vendor','both') NOT NULL,
-  code VARCHAR(50) NOT NULL,
-  name VARCHAR(180) NOT NULL,
-  tax_id VARCHAR(80) NULL,
-  email VARCHAR(190) NULL,
-  phone VARCHAR(80) NULL,
-  address_text TEXT NULL,
-  currency CHAR(3) NOT NULL DEFAULT 'IDR',
-  ar_account_id BIGINT UNSIGNED NULL,
-  ap_account_id BIGINT UNSIGNED NULL,
-  is_active TINYINT(1) NOT NULL DEFAULT 1,
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_party_code(company_id,code),
-  KEY idx_party_type(company_id,party_type,is_active),
-  CONSTRAINT fk_party_company FOREIGN KEY(company_id) REFERENCES companies(id),
-  CONSTRAINT fk_party_ar FOREIGN KEY(ar_account_id) REFERENCES chart_accounts(id),
-  CONSTRAINT fk_party_ap FOREIGN KEY(ap_account_id) REFERENCES chart_accounts(id)
-) ENGINE=InnoDB;
+
 
 
 

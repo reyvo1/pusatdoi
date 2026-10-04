@@ -28,6 +28,18 @@ function duplicateCreateColumns(string $sql):array{
 }
 
 
+function forwardForeignKeyDependencies(string $sql):array{
+    $tables=[];
+    if(!preg_match_all('/CREATE TABLE\s+([A-Za-z0-9_]+)\s*\((.*?)\)\s*ENGINE=InnoDB;/si',$sql,$ms,PREG_SET_ORDER|PREG_OFFSET_CAPTURE)) return [];
+    foreach($ms as $i=>$m){$tables[strtolower($m[1][0])]=['order'=>$i,'body'=>$m[2][0]];}
+    $bad=[];
+    foreach($tables as $table=>$meta){
+        if(!preg_match_all('/FOREIGN KEY\s*\([^)]+\)\s+REFERENCES\s+([A-Za-z0-9_]+)/i',$meta['body'],$fm)) continue;
+        foreach($fm[1] as $ref){$ref=strtolower($ref);if(isset($tables[$ref])&&$tables[$ref]['order']>$meta['order'])$bad[]=$table.'->'.$ref;}
+    }
+    return array_values(array_unique($bad));
+}
+
 function duplicateCreateNames(string $sql):array{
     $dups=[];$globalConstraints=[];
     if(!preg_match_all('/CREATE TABLE\s+([A-Za-z0-9_]+)\s*\((.*?)\)\s*ENGINE=InnoDB;/si',$sql,$ms,PREG_SET_ORDER))return ['tables'=>[],'indexes'=>[],'constraints'=>[]];
@@ -57,6 +69,8 @@ $nameDups=duplicateCreateNames($r7);
 sc($nameDups['tables']===[],'Fresh R7 schema contains no duplicate CREATE TABLE names');
 sc($nameDups['indexes']===[],'Fresh R7 tables contain no duplicate named indexes');
 sc($nameDups['constraints']===[],'Fresh R7 schema contains no duplicate constraint names');
+$forwardFks=forwardForeignKeyDependencies($r7);
+sc($forwardFks===[],'Fresh R7 schema has no forward foreign-key dependencies'.($forwardFks?' ['.implode(',',$forwardFks).']':''));
 sc(substr_count($r7,'uq_payment_invoice')===1,'Fresh R7 schema defines payment allocation unique exactly once');
 sc(substr_count($v7,'uq_payment_invoice')===0,'R4 migration does not recreate R3 payment allocation unique');
 
@@ -81,6 +95,9 @@ sc(stripos($inspector,'TABLE_NAME AS table_name')!==false,'SchemaInspector alias
 
 sc(strpos($mysqlWorkflow,"run: |\n          php tests/mysql-production.php\n          php tests/r5-mysql-uat.php\n          php tests/r7-mysql-uat.php")!==false,'MySQL workflow runs production test scripts as separate commands');
 sc(substr_count($fullWorkflow,'schema_enterprise_r7.sql')>=4,'Full UAT uses R7 fresh schema across MySQL-dependent gates');
+sc(strpos($fullWorkflow,"\t")===false&&strpos($mysqlWorkflow,"\t")===false,'GitHub workflow YAML contains no literal TAB characters');
+sc(strpos($fullWorkflow,'Snapshot exact legacy master data')!==false&&strpos($fullWorkflow,'diff -u /tmp/pre-companies.tsv /tmp/post-companies.tsv')!==false&&strpos($fullWorkflow,'diff -u /tmp/pre-accounts.tsv /tmp/post-legacy-accounts.tsv')!==false,'Migration UAT preserves exact legacy company/account rows');
+sc(strpos($fullWorkflow,'test "$required" -eq 5')!==false&&strpos($fullWorkflow,'legacy + 5')!==false,'Migration UAT requires exactly five specified system accounts');
 
 echo "Schema contract result: $pass passed, $fail failed\n";
 exit($fail?1:0);

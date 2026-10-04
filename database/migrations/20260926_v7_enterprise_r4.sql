@@ -203,6 +203,7 @@ ALTER TABLE elimination_entries
   ADD CONSTRAINT fk_elimination_entry_department FOREIGN KEY(department_id) REFERENCES departments(id);
 
 ALTER TABLE integration_events
+  MODIFY COLUMN external_ref VARCHAR(160) NOT NULL,
   ADD COLUMN event_version VARCHAR(20) NOT NULL DEFAULT '1' AFTER event_type,
   ADD COLUMN mapping_version VARCHAR(40) NULL AFTER event_version,
   ADD COLUMN attempts TINYINT UNSIGNED NOT NULL DEFAULT 0 AFTER error_text,

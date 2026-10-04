@@ -1,11 +1,14 @@
 <?php
+$environment = strtolower(trim((string)(getenv('NEXA_ENV') ?: 'development')));
+$demoEnv = getenv('NEXA_DEMO_MODE');
+$demoMode = $demoEnv === false || $demoEnv === '' ? ($environment !== 'production') : filter_var($demoEnv, FILTER_VALIDATE_BOOL);
 $base = [
     'app_name' => getenv('NEXA_APP_NAME') ?: 'NEXA Group Finance',
-    'version' => '7.0.2-r7.2-uat',
-    'environment' => getenv('NEXA_ENV') ?: 'development',
+    'version' => '7.0.3-r7.3-deep-audit',
+    'environment' => $environment,
     'timezone' => getenv('NEXA_TIMEZONE') ?: 'Asia/Makassar',
     'base_currency' => getenv('NEXA_CURRENCY') ?: 'IDR',
-    'demo_mode' => filter_var(getenv('NEXA_DEMO_MODE') ?: 'true', FILTER_VALIDATE_BOOL),
+    'demo_mode' => $demoMode,
     'approval_threshold' => (float)(getenv('NEXA_APPROVAL_THRESHOLD') ?: 25000000),
     'setup_key' => getenv('NEXA_SETUP_KEY') ?: '',
     'integration_key' => getenv('NEXA_INTEGRATION_KEY') ?: '',

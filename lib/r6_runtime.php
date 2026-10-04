@@ -1,8 +1,15 @@
 <?php
 /** NEXA R6 usability workflows: bulk onboarding, AP payment batches, evidence documents. */
 function r6CsvFromRequest(array $input):array{
-    $csv=(string)($input['csv']??'');$name=trim((string)($input['filename']??'import.csv'))?:'import.csv';
-    if(isset($_FILES['file'])&&is_uploaded_file($_FILES['file']['tmp_name'])){$csv=(string)file_get_contents($_FILES['file']['tmp_name']);$name=(string)($_FILES['file']['name']??$name);}return[$csv,$name];
+    $max=5*1024*1024;$csv=(string)($input['csv']??'');$name=trim((string)($input['filename']??'import.csv'))?:'import.csv';
+    if(isset($_FILES['file'])){
+        if((int)($_FILES['file']['error']??UPLOAD_ERR_NO_FILE)!==UPLOAD_ERR_OK)throw new RuntimeException('Upload CSV gagal.');
+        if((int)($_FILES['file']['size']??0)>$max)throw new InvalidArgumentException('CSV maksimal 5 MB.');
+        if(!is_uploaded_file((string)($_FILES['file']['tmp_name']??'')))throw new RuntimeException('Upload CSV tidak valid.');
+        $csv=(string)file_get_contents($_FILES['file']['tmp_name']);$name=(string)($_FILES['file']['name']??$name);
+    }
+    if(strlen($csv)>$max)throw new InvalidArgumentException('CSV maksimal 5 MB.');
+    return[$csv,$name];
 }
 function r6RecordImportJob(int $company,string $type,string $name,string $sha,int $total,int $ok,array $errors,array $summary=[]):array{
     global $config;$s=r4ContextStore();$status=$errors?($ok>0?'completed_with_errors':'failed'):'completed';

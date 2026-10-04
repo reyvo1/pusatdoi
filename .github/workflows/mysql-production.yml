@@ -42,6 +42,8 @@ jobs:
         run: php tests/schema-contract.php
       - name: Frontend / backend contract
         run: php tests/frontend-backend-contract.php
+      - name: Deep audit security / integrity
+        run: php tests/deep-audit-security.php
       - name: JavaScript syntax validation
         run: |
           node --check assets/app.js

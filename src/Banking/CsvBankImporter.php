@@ -28,6 +28,7 @@ final class CsvBankImporter
             if (!preg_match('/^\\d{4}-\\d{2}-\\d{2}$/',$date) || $description==='' || $amount<=0 || !in_array($direction,['in','out'],true)) continue;
             $rows[]=['date'=>$date,'description'=>$description,'amount'=>$amount,'direction'=>$direction,
                 'external_ref'=>'CSV-'.substr(hash('sha256',"{$date}|{$description}|{$amount}|{$direction}"),0,24)];
+            if(count($rows)>10000) throw new DomainException('Import bank dibatasi maksimal 10.000 baris per file.');
         }
         fclose($fh);
         if (!$rows) throw new DomainException('Tidak ada baris bank valid yang dapat diimpor.');

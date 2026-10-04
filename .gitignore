@@ -1,2 +1,14 @@
+# Runtime / secrets
+config/config.local.php
 storage/audit.log
 storage/*.log
+
+# Uploaded evidence is runtime data; keep protection file only.
+storage/documents/*
+!storage/documents/.htaccess
+
+# Local/editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.tmp

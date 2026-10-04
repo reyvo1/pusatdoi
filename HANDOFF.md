@@ -1,17 +1,18 @@
-# HANDOFF — NEXA Enterprise R7.2 Root-Fix UAT Candidate
+# HANDOFF — NEXA Enterprise R7.3 Deep Audit UAT Candidate
 
-Baseline version: `7.0.2-r7.2-uat`.
+Baseline: `NEXA-GROUP-FINANCE-ENTERPRISE-R7.3-UAT-HARDENED-2026-10-04.zip`
+Version: `7.0.3-r7.3-deep-audit`
+GitHub: `reyvo1/pusatdoi`
+User local repo: `/home/ivo/Desktop/program/pusatdoi`
 
-The latest uploaded GitHub logs were traced against exact commit `b9c4d796022482728349ef9f4b330f2f71649c1d`.
+This full source is the source of truth for the next chat. Do not return to R7.2/R7.2.2 patch baselines.
 
-Root causes fixed in source:
+Local deterministic evidence: 278/278 assertions PASS, PHP/JS lint PASS, architecture PASS, production fail-closed PASS, 33/33 demo pages and 7/7 report views HTTP 200 with no PHP warning/fatal.
 
-1. fresh R7 schema mixed old CREATE shapes with migration ALTERs and failed at `bank_reconciliation_sessions.period_end`;
-2. SchemaInspector could treat all MySQL tables as missing due to INFORMATION_SCHEMA result-key casing;
-3. Journal Multi-Line UI exposed foreign currency without sending/validating FX amount/rate.
+Deep audit fixed canonical schema dependency/order, migration preservation, production demo fail-closed, protected first-owner setup, stored-XSS-safe inline data, API DB error masking, immutable concurrent-safe integration idempotency, integration length contract, import resource limits, and frontend/backend FX journal parity.
 
-Do not revert to R7/R7.1 patches. Push the complete R7.2 source (or the R7.2 patch) and use the new GitHub logs as the next evidence. Do not weaken any UAT gate.
+UAT hardening continuation: removed a non-blocking unauthorized-API `|| true` check. The HTTP gate now requires HTTP 401 and proves the attempted unauthenticated company mutation leaves DB state unchanged.
 
-Local evidence: 258 assertions PASS, 0 FAIL + lint/architecture/fail-closed + 33/33 demo HTTP pages.
+RULE: Never weaken UAT. If GitHub is red, inspect the first causal error and fix application/schema/backend/frontend/workflow code. Do not delete assertions, add continue-on-error, bypass foreign keys, or change expected business results merely to force green.
 
-Mandatory external evidence still pending: MySQL 8.4 fresh schema, R2→R7 migration, HTTP/security/reports, Browser E2E real journal round-trip and scale simulation.
+Next mandatory action: place this full source in the local repo (preserve `.git`), push, then evaluate GitHub MySQL 8.4, migration, HTTP, browser and scale gates.

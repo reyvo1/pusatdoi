@@ -38,8 +38,15 @@ for view in pl balance equity cashflow ledger trial intercompany; do
     curl --fail --silent -b "$JAR" "$url" >/dev/null || fail "export $view/$fmt"
   done
 done
-# Unauthorized API should not mutate.
-curl --silent -o /tmp/unauth.json "$BASE/api.php?action=dashboard"; grep -Eq 'login|Unauthorized|Autentikasi|ok' /tmp/unauth.json || true
+# Unauthorized mutation must fail closed and leave database state unchanged.
+unauth_before=$(mysql -N -h127.0.0.1 -uroot -proot nexa_group_finance -e "SELECT COUNT(*) FROM companies")
+unauth_code=$(curl --silent --show-error -o /tmp/unauth.json -w '%{http_code}' -X POST "$BASE/api.php?action=create-company" \
+  --data-urlencode "code=UNAUTH-HTTP-UAT" --data-urlencode "name=Unauthorized HTTP UAT" --data-urlencode "business_type=test")
+[ "$unauth_code" = "401" ] || fail "unauthorized API returned HTTP $unauth_code instead of 401"
+grep -q '"ok":false' /tmp/unauth.json || fail "unauthorized API did not return ok=false"
+grep -q 'Autentikasi diperlukan' /tmp/unauth.json || fail "unauthorized API did not return authentication error"
+unauth_after=$(mysql -N -h127.0.0.1 -uroot -proot nexa_group_finance -e "SELECT COUNT(*) FROM companies")
+[ "$unauth_before" = "$unauth_after" ] || fail "unauthorized request mutated companies table"
 # Integration idempotency.
 r1=$(curl --fail --silent -X POST "$BASE/integration.php" -H 'Content-Type: application/json' -H "X-Nexa-Key: ${NEXA_INTEGRATION_KEY}" --data '{"source":"FULL-UAT","company_id":1,"external_ref":"UAT-IDEMP-001","amount":123000}')
 printf '%s' "$r1"|grep -q 'received'||fail integration-first

@@ -32,6 +32,8 @@ jobs:
         run: php tests/schema-contract.php
       - name: Frontend / backend contract
         run: php tests/frontend-backend-contract.php
+      - name: Deep audit security / integrity
+        run: php tests/deep-audit-security.php
       - name: Demo accounting regression
         env: { NEXA_DEMO_MODE: 'true' }
         run: php tests/run.php
@@ -114,10 +116,12 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y php-mysql mysql-client
       - name: Build legacy R2 database
         run: mysql -h127.0.0.1 -uroot -proot < database/schema.sql && mysql -h127.0.0.1 -uroot -proot < database/seed.sql
-      - name: Snapshot legacy counts
+      - name: Snapshot exact legacy master data
         run: |
-          mysql -N -h127.0.0.1 -uroot -proot nexa_group_finance -e "SELECT COUNT(*) FROM companies; SELECT COUNT(*) FROM chart_accounts;" > /tmp/pre-migration-counts.txt
-          cat /tmp/pre-migration-counts.txt
+          mysql -N -B -h127.0.0.1 -uroot -proot nexa_group_finance -e "SELECT id,code,name,COALESCE(legal_name,''),business_type,COALESCE(tax_id,''),base_currency,is_active FROM companies ORDER BY id" > /tmp/pre-companies.tsv
+          mysql -N -B -h127.0.0.1 -uroot -proot nexa_group_finance -e "SELECT id,COALESCE(company_id,0),code,name,account_type,COALESCE(parent_id,0),is_cash_bank,is_active FROM chart_accounts ORDER BY id" > /tmp/pre-accounts.tsv
+          cat /tmp/pre-companies.tsv
+          cat /tmp/pre-accounts.tsv
       - name: Apply Enterprise R3 migration
         run: mysql -h127.0.0.1 -uroot -proot nexa_group_finance < database/migrations/20260925_v6_enterprise_r3.sql
       - name: Apply Enterprise R4 migration
@@ -130,10 +134,21 @@ jobs:
         run: mysql -h127.0.0.1 -uroot -proot nexa_group_finance < database/migrations/20260926_v10_group_finance_controls.sql
       - name: Verify enterprise schema after upgrade
         run: php tests/schema-enterprise.php
-      - name: Verify legacy data preserved
+      - name: Verify legacy rows preserved and required system accounts added
         run: |
-          mysql -N -h127.0.0.1 -uroot -proot nexa_group_finance -e "SELECT COUNT(*) FROM companies; SELECT COUNT(*) FROM chart_accounts;" > /tmp/post-migration-counts.txt
-          diff -u /tmp/pre-migration-counts.txt /tmp/post-migration-counts.txt
+          company_ids=$(cut -f1 /tmp/pre-companies.tsv | paste -sd, -)
+          account_ids=$(cut -f1 /tmp/pre-accounts.tsv | paste -sd, -)
+          test -n "$company_ids"
+          test -n "$account_ids"
+          mysql -N -B -h127.0.0.1 -uroot -proot nexa_group_finance -e "SELECT id,code,name,COALESCE(legal_name,''),business_type,COALESCE(tax_id,''),base_currency,is_active FROM companies WHERE id IN ($company_ids) ORDER BY id" > /tmp/post-companies.tsv
+          mysql -N -B -h127.0.0.1 -uroot -proot nexa_group_finance -e "SELECT id,COALESCE(company_id,0),code,name,account_type,COALESCE(parent_id,0),is_cash_bank,is_active FROM chart_accounts WHERE id IN ($account_ids) ORDER BY id" > /tmp/post-legacy-accounts.tsv
+          diff -u /tmp/pre-companies.tsv /tmp/post-companies.tsv
+          diff -u /tmp/pre-accounts.tsv /tmp/post-legacy-accounts.tsv
+          required=$(mysql -N -B -h127.0.0.1 -uroot -proot nexa_group_finance -e "SELECT COUNT(*) FROM chart_accounts WHERE company_id IS NULL AND ((code='1161' AND name='Beban Dibayar Dimuka' AND account_type='asset' AND is_cash_bank=0 AND is_active=1) OR (code='2201' AND name='Pendapatan Diterima Dimuka' AND account_type='liability' AND is_cash_bank=0 AND is_active=1) OR (code='3102' AND name='Saldo Laba Ditahan' AND account_type='equity' AND is_cash_bank=0 AND is_active=1) OR (code='5401' AND name='Laba/Rugi Pelepasan & Penurunan Nilai Aset' AND account_type='expense' AND is_cash_bank=0 AND is_active=1) OR (code='5501' AND name='Biaya Administrasi Bank' AND account_type='expense' AND is_cash_bank=0 AND is_active=1))")
+          test "$required" -eq 5
+          total=$(mysql -N -h127.0.0.1 -uroot -proot nexa_group_finance -e "SELECT COUNT(*) FROM chart_accounts")
+          legacy=$(wc -l < /tmp/pre-accounts.tsv)
+          test "$total" -eq $((legacy + 5))
       - name: Run regression against upgraded DB
         run: |
           php tests/uat-fixture.php

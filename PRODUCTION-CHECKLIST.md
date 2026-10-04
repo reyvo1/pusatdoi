@@ -1,18 +1,15 @@
-# PRODUCTION CHECKLIST — R7.2
+# PRODUCTION CHECKLIST — R7.3
 
-R7.2 is a UAT candidate, not Production Final.
-
-Before production sign-off:
-
-- [ ] `NEXA Full UAT` all jobs green on GitHub.
-- [ ] `NEXA MySQL Production Simulation` green on GitHub.
-- [ ] Fresh MySQL 8.4 import of `database/schema_enterprise_r7.sql` PASS.
-- [ ] R2→R7 migration chain PASS with legacy counts preserved.
-- [ ] Browser E2E real multi-currency journal round-trip PASS.
-- [ ] HTTP/security/reports/export gate PASS with no PHP warning/fatal.
-- [ ] Scale simulation PASS.
-- [ ] Production environment has PDO MySQL enabled.
-- [ ] Real company COA, opening balances, bank accounts, tax profiles, users/roles and approval policies reviewed.
-- [ ] Backup/restore drill completed on staging data.
-- [ ] Integration keys and application secrets replaced with production secrets.
-- [ ] Demo mode disabled and application fails closed if DB is unavailable.
+- [ ] Verify full-source ZIP SHA-256 and `SOURCE-MANIFEST.txt`.
+- [ ] Run `bash tests/run-all-local.sh` after extraction.
+- [ ] Fresh install uses `database/schema_enterprise_r7.sql`; upgrades use official migrations v6→v10 in order.
+- [ ] `NEXA_ENV=production`, Demo Mode disabled, PDO MySQL enabled.
+- [ ] Configure strong `NEXA_SETUP_KEY` (>=24 chars) before first Group Owner bootstrap, then rotate/disable setup exposure after initialization.
+- [ ] Replace all CI/test credentials and integration keys with production secrets.
+- [ ] Backup database and prove restore on staging before migration.
+- [ ] Load/review real COA, opening balances, bank mappings, tax profiles, users, roles, approval policies and fiscal periods.
+- [ ] GitHub NEXA Full UAT all gates green on the exact production-candidate SHA.
+- [ ] GitHub NEXA MySQL Production Simulation green.
+- [ ] Review Browser E2E visual evidence.
+- [ ] Run production-volume benchmark before final sign-off.
+- [ ] Keep PMS/POS/HR/inventory as source systems; integrate through idempotent staging/inbox APIs.

@@ -148,4 +148,5 @@ try {
         verifyCsrf(); global $config;if(!$config['demo_mode'])throw new RuntimeException('Reset hanya tersedia di Demo Mode.');saveStore(demoSeed());writeAudit('demo.reset');jsonOut(['ok'=>true]);
     }
     jsonOut(['ok'=>false,'message'=>'Endpoint tidak ditemukan.'],404);
-} catch(Throwable $e){ jsonOut(['ok'=>false,'message'=>$e->getMessage()],422); }
+} catch(PDOException $e){ error_log('NEXA API database error: '.$e->getMessage()); jsonOut(['ok'=>false,'message'=>'Operasi database gagal. Periksa log server dengan correlation time '.date('c').'.'],500); }
+catch(Throwable $e){ jsonOut(['ok'=>false,'message'=>$e->getMessage()],422); }

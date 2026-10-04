@@ -16,6 +16,8 @@ echo '== Schema / migration contract =='
 php tests/schema-contract.php
 echo '== Frontend / backend contract =='
 php tests/frontend-backend-contract.php
+echo '== Deep audit security / integrity =='
+php tests/deep-audit-security.php
 echo '== Legacy regression =='
 php tests/run.php
 echo '== Enterprise domain =='
