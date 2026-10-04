@@ -54,8 +54,53 @@ function duplicateCreateNames(string $sql):array{
     return ['tables'=>$tableD,'indexes'=>$dups,'constraints'=>$constraintD];
 }
 
+
+function sqlTopLevelValueCount(string $row):int{
+    $count=1;$depth=0;$quote=false;$len=strlen($row);
+    if(trim($row)==='')return 0;
+    for($i=0;$i<$len;$i++){
+        $ch=$row[$i];
+        if($quote){
+            if($ch==="'"){
+                if($i+1<$len&&$row[$i+1]==="'"){$i++;continue;}
+                $quote=false;
+            }elseif($ch==='\\'){$i++;}
+            continue;
+        }
+        if($ch==="'"){$quote=true;continue;}
+        if($ch==='('){$depth++;continue;}
+        if($ch===')'){$depth--;continue;}
+        if($ch===','&&$depth===0)$count++;
+    }
+    return $count;
+}
+function seedInsertArityMismatches(string $sql):array{
+    $bad=[];
+    if(!preg_match_all('/INSERT\\s+INTO\\s+([A-Za-z0-9_]+)\\s*\\((.*?)\\)\\s*VALUES\\s*(.*?);/si',$sql,$ms,PREG_SET_ORDER))return $bad;
+    foreach($ms as$m){
+        $table=$m[1];$columnCount=count(array_filter(array_map('trim',explode(',',$m[2])),fn($v)=>$v!==''));$values=$m[3];
+        $rows=[];$depth=0;$quote=false;$start=null;$len=strlen($values);
+        for($i=0;$i<$len;$i++){
+            $ch=$values[$i];
+            if($quote){
+                if($ch==="'"){
+                    if($i+1<$len&&$values[$i+1]==="'"){$i++;continue;}
+                    $quote=false;
+                }elseif($ch==='\\'){$i++;}
+                continue;
+            }
+            if($ch==="'"){$quote=true;continue;}
+            if($ch==='('){if($depth===0)$start=$i+1;$depth++;continue;}
+            if($ch===')'){$depth--;if($depth===0&&$start!==null){$rows[]=substr($values,$start,$i-$start);$start=null;}continue;}
+        }
+        foreach($rows as$i=>$row){$valueCount=sqlTopLevelValueCount($row);if($valueCount!==$columnCount)$bad[]=$table.'#'.($i+1).':'.$columnCount.'cols/'.$valueCount.'vals';}
+    }
+    return $bad;
+}
+
 $root=dirname(__DIR__);
 $r7=file_get_contents($root.'/database/schema_enterprise_r7.sql');
+$seed=file_get_contents($root.'/database/seed_enterprise.sql');
 $v6=file_get_contents($root.'/database/migrations/20260925_v6_enterprise_r3.sql');
 $v7=file_get_contents($root.'/database/migrations/20260926_v7_enterprise_r4.sql');
 $inspector=file_get_contents($root.'/src/Infrastructure/Persistence/SchemaInspector.php');
@@ -69,6 +114,8 @@ $nameDups=duplicateCreateNames($r7);
 sc($nameDups['tables']===[],'Fresh R7 schema contains no duplicate CREATE TABLE names');
 sc($nameDups['indexes']===[],'Fresh R7 tables contain no duplicate named indexes');
 sc($nameDups['constraints']===[],'Fresh R7 schema contains no duplicate constraint names');
+$seedArity=seedInsertArityMismatches($seed);
+sc($seedArity===[],'Enterprise seed INSERT column/value arity matches'.($seedArity?' ['.implode(',',$seedArity).']':''));
 $forwardFks=forwardForeignKeyDependencies($r7);
 sc($forwardFks===[],'Fresh R7 schema has no forward foreign-key dependencies'.($forwardFks?' ['.implode(',',$forwardFks).']':''));
 sc(substr_count($r7,'uq_payment_invoice')===1,'Fresh R7 schema defines payment allocation unique exactly once');
@@ -94,6 +141,7 @@ sc(strpos($inspector,'PDO::FETCH_COLUMN')!==false,'SchemaInspector reads informa
 sc(stripos($inspector,'TABLE_NAME AS table_name')!==false,'SchemaInspector aliases TABLE_NAME explicitly');
 
 sc(strpos($mysqlWorkflow,"run: |\n          php tests/mysql-production.php\n          php tests/r5-mysql-uat.php\n          php tests/r7-mysql-uat.php")!==false,'MySQL workflow runs production test scripts as separate commands');
+sc(strpos($mysqlWorkflow,'paths:')===false&&strpos($mysqlWorkflow,'branches: [ main, master ]')!==false,'Standalone MySQL workflow runs every main/master push for exact-SHA evidence');
 sc(substr_count($fullWorkflow,'schema_enterprise_r7.sql')>=4,'Full UAT uses R7 fresh schema across MySQL-dependent gates');
 sc(strpos($fullWorkflow,"\t")===false&&strpos($mysqlWorkflow,"\t")===false,'GitHub workflow YAML contains no literal TAB characters');
 sc(strpos($fullWorkflow,'Snapshot exact legacy master data')!==false&&strpos($fullWorkflow,'diff -u /tmp/pre-companies.tsv /tmp/post-companies.tsv')!==false&&strpos($fullWorkflow,'diff -u /tmp/pre-accounts.tsv /tmp/post-legacy-accounts.tsv')!==false,'Migration UAT preserves exact legacy company/account rows');

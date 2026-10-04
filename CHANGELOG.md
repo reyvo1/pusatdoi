@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## Enterprise R7.3 GitHub UAT Root Fix — 2026-10-04
+- Fixed `database/seed_enterprise.sql`: `income_categories` rows now match the declared 8-column INSERT contract and explicitly set `is_active=1`.
+- Added a generic seed INSERT column/value arity contract to block the same class of MySQL import failure before CI runtime.
+- Fixed `r4SqlCompanyMetrics()` PDO parameter parity for the repeated revenue/expense date predicates (`HY093 Invalid parameter number`).
+- Fixed production `reverseJournal()` return contract so `reversal_of` is exposed and the persisted audit chain can be verified without an undefined key.
+- Removed the standalone MySQL workflow `paths:` filter and trigger it on every `main`/`master` push for exact-SHA evidence.
+- Added deep-audit guards for the metrics parameter contract and production reversal return contract.
+- Local deterministic evidence after repair: 282/282 assertions PASS; PHP/JS lint, architecture, and production fail-closed PASS.
+- No UAT assertion weakened or removed.
+
 ## Enterprise R7.3 Deep Audit UAT Candidate — 2026-10-04
 - Full source/security/integrity audit; no UAT weakening.
 - Production environment now defaults fail-closed instead of silently enabling demo mode.

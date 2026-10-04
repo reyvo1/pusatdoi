@@ -36,10 +36,10 @@ INSERT INTO tax_profiles(id,code,name,rate,tax_type,input_account_id,output_acco
 (1,'PPN11','PPN 11%',11,'output',14,13,1),(2,'NONE','Non Pajak',0,'none',NULL,NULL,1);
 
 INSERT INTO income_categories(id,company_id,code,name,revenue_account_id,tax_profile_id,sort_order,is_active) VALUES
-(1,1,'ROOM','Pendapatan Kamar',6,1,10),(2,1,'RESTO','Restoran / Mini Bar',6,1,20),(3,1,'LAUNDRY','Laundry',6,1,30),
-(4,2,'SALES','Penjualan Barang',6,1,10),(5,2,'SERVICE','Pendapatan Jasa',6,1,20),
-(6,3,'RENT','Sewa Kamar',6,2,10),(7,3,'UTILITY','Utilitas / Service',6,2,20),
-(8,4,'DINE','Dine In',6,1,10),(9,4,'DELIVERY','Takeaway / Delivery',6,1,20);
+(1,1,'ROOM','Pendapatan Kamar',6,1,10,1),(2,1,'RESTO','Restoran / Mini Bar',6,1,20,1),(3,1,'LAUNDRY','Laundry',6,1,30,1),
+(4,2,'SALES','Penjualan Barang',6,1,10,1),(5,2,'SERVICE','Pendapatan Jasa',6,1,20,1),
+(6,3,'RENT','Sewa Kamar',6,2,10,1),(7,3,'UTILITY','Utilitas / Service',6,2,20,1),
+(8,4,'DINE','Dine In',6,1,10,1),(9,4,'DELIVERY','Takeaway / Delivery',6,1,20,1);
 
 INSERT INTO bank_accounts(id,company_id,account_id,bank_name,account_name,account_number,currency,is_active) VALUES
 (1,1,1,'Bank Utama','PT Hotel Nusantara','1234567890','IDR',1),(2,2,1,'Bank Utama','CV Retail Sejahtera','2234567890','IDR',1),

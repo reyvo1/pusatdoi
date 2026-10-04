@@ -1,10 +1,12 @@
-NEXA Group Finance Enterprise R7.3 Deep Audit UAT Candidate
+NEXA Group Finance Enterprise R7.3 GitHub UAT Root-Fix Candidate
 Version: 7.0.3-r7.3-deep-audit
 Date: 2026-10-04
-Local deterministic assertions: 278/278 PASS
+Local deterministic assertions: 282/282 PASS
+Schema/migration contract: 39/39 PASS
+Frontend/backend contract: 26/26 PASS
+Deep audit security/integrity: 18/18 PASS
 Architecture: PASS (107 enterprise PHP modules)
 Production fail-closed: PASS
-Demo HTTP pages: 33/33
-Report views: 7/7
-PHP warning/fatal in sweep: 0
-GitHub MySQL 8.4 / Browser / Scale: REQUIRED BEFORE PRODUCTION FINAL
+Existing demo HTTP evidence: 33/33 pages, 7/7 report views, 0 PHP warning/fatal
+GitHub run analyzed: 37206221993 @ 80beb34cbad701553a87b22a876d7a6e3215f301
+GitHub MySQL 8.4 / Migration / HTTP / Browser / Scale: REQUIRED AGAIN ON NEW EXACT SHA BEFORE PRODUCTION FINAL

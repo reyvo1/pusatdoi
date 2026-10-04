@@ -2,12 +2,8 @@ name: NEXA MySQL Production Simulation
 on:
   workflow_dispatch:
   push:
-    paths:
-      - '**.php'
-      - 'assets/**'
-      - 'tests/**'
-      - 'database/**'
-      - '.github/workflows/mysql-production.yml'
+    branches: [ main, master ]
+  pull_request:
 jobs:
   production-mysql:
     runs-on: ubuntu-latest

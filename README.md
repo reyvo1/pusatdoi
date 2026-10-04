@@ -3,9 +3,9 @@
 Version: `7.0.3-r7.3-deep-audit`
 Date: 2026-10-04
 
-R7.2 is built from the exact source audited in GitHub commit `b9c4d796022482728349ef9f4b330f2f71649c1d` and fixes the root causes exposed by the latest MySQL 8.4 UAT logs.
+R7.3 continues the deep-audit baseline and includes the root fixes exposed by GitHub Full UAT run `37206221993` at commit `80beb34cbad701553a87b22a876d7a6e3215f301`. The current package remains a UAT candidate until every GitHub production gate passes on one exact SHA.
 
-## Important R7.2 corrections
+## Important R7.3 corrections
 
 - canonical fresh schema is final-shape only; migration ALTER statements are no longer replayed inside fresh installs;
 - final `bank_reconciliation_sessions` schema matches backend fields;
@@ -15,7 +15,7 @@ R7.2 is built from the exact source audited in GitHub commit `b9c4d7960224827283
 - Browser E2E now posts a real USD journal through the UI and verifies it in the ledger;
 - separate MySQL workflow now executes schema/frontend contracts and JS checks.
 
-See `GITHUB-UAT-ROOT-CAUSE-R7.2.md` for the evidence and detailed root-cause analysis.
+See `GITHUB-UAT-ROOT-CAUSE-R7.2.md` and `GITHUB-UAT-ROOT-CAUSE-R7.3.md` for the evidence and detailed root-cause analysis.
 
 ## Fresh installation
 
@@ -46,7 +46,7 @@ Then run `php tests/schema-enterprise.php`.
 bash tests/run-all-local.sh
 ```
 
-Current R7.2 local result: **258 assertions PASS, 0 FAIL** plus PHP/JS lint, architecture and fail-closed PASS.
+Current R7.3 local result after the latest root-fix: **282 assertions PASS, 0 FAIL** plus PHP/JS lint, architecture and fail-closed PASS.
 
 Production Final is intentionally withheld until all GitHub MySQL 8.4 / migration / HTTP / Browser E2E / scale gates are green.
 

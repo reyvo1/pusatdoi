@@ -10,6 +10,7 @@ $index=file_get_contents($root.'/index.php');
 $api=file_get_contents($root.'/api.php');
 $integration=file_get_contents($root.'/integration.php');
 $r4=file_get_contents($root.'/lib/r4_runtime.php');
+$bootstrap=file_get_contents($root.'/lib/bootstrap.php');
 $r6=file_get_contents($root.'/lib/r6_runtime.php');
 $schema=file_get_contents($root.'/database/schema_enterprise_r7.sql');
 $v7=file_get_contents($root.'/database/migrations/20260926_v7_enterprise_r4.sql');
@@ -53,5 +54,7 @@ foreach($lines as $i=>$line){
 da($missing===[],'Every browser-authenticated POST API route enforces CSRF'.($missing?' ['.implode(',',$missing).']':''));
 da(strpos($httpUat,'unauth_code=$(curl')!==false && strpos($httpUat,'[ "$unauth_code" = "401" ]')!==false && strpos($httpUat,'|| true')===false,'HTTP UAT unauthorized mutation is a hard 401 gate without bypass');
 da(strpos($httpUat,'unauth_before=$(mysql')!==false && strpos($httpUat,'unauth_after=$(mysql')!==false && strpos($httpUat,'[ "$unauth_before" = "$unauth_after" ]')!==false,'HTTP UAT proves unauthorized request cannot mutate company state');
+da(strpos($r4,"\$params=[\$f['start'],\$f['end'],\$f['start'],\$f['end']];")!==false,'Company metrics binds both revenue and expense date ranges');
+da(strpos($bootstrap,"'status'=>'posted','reversal_of'=>\$id")!==false,'Production reversal return preserves reversal_of audit contract');
 
 echo "Deep audit security result: $pass passed, $fail failed\n";exit($fail?1:0);
